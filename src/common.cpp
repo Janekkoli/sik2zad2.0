@@ -120,9 +120,9 @@ int send_TRICK(int fd, int trick_number, const char *cards) {
     return writen(fd, buffer, strlen(buffer));
 }
 
-int send_DEAL(int fd, const char *deal_type, const char *first_seat, const char *cards) {
+int send_DEAL(int fd, int deal_type, const char first_seat, const std::string &cards) {
     char buffer[MAX_MESSAGE_SIZE];
-    snprintf(buffer, MAX_MESSAGE_SIZE, "DEAL%s%c%s\r\n", deal_type, *first_seat, cards);
+    snprintf(buffer, MAX_MESSAGE_SIZE, "DEAL%d%c%s\r\n", deal_type, first_seat, cards.c_str());
     return writen(fd, buffer, strlen(buffer));
 }
 

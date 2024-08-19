@@ -51,10 +51,11 @@ int main(int argc, char *argv[]) {
     print_usage();
     return EXIT_FAILURE;
   }
-  Server server = Server(port, filename, timeout);
+  auto server = Server(port, filename, timeout);
 
   server.print();
-  // Read play file
+
+  server.run();
 
   return EXIT_SUCCESS;
 }

@@ -41,14 +41,13 @@ struct sockaddr_in get_server_address(char const *host, uint16_t port) {
 }
 
 void trics_print(){
-    Game *g = all_games.currentGame();
-    if(g == nullptr) {std::cout<<"No game started"<<std::endl; return;}
+    Game g = all_games.currentGame();
     std::cout<<"Tricks won by me: \n";
     int n=0;
     for(int i=0;i<14;i++)
     {
-        if(g->tricks[i].getWinner()==me)
-        {std::cout<<"Trick number: "<<i<<", cards "<<g->tricks[i].cardsToString()<<"\n";n++;}
+        if(g.tricks[i].getWinner()==me)
+        {std::cout<<"Trick number: "<<i<<", cards "<<g.tricks[i].cardsToString()<<"\n";n++;}
     }
     if(n==0)std::cout<<"None :(\n";
 }
@@ -109,8 +108,7 @@ bool dealwith_TAKEN(std::string content)
     if(4!=cardStringToArray(cards, karty, 4)) return false;
     for(auto i : karty) lewa.addCard(i);
     lewa.setWinner(fromChar(winner_seat));
-    if(all_games.currentGame() == nullptr) return false;
-    all_games.currentGame()->addTrick(lewa);
+    all_games.currentGame().addTrick(lewa);
     std::cout<< "A trick " << trick_number << " is taken by " << winner_seat << ", cards " << lewa.cardsToString() << "\n";
     return true;
 }
@@ -120,8 +118,8 @@ bool dealwith_WRONG(std::string content)
     int trick_number;
     if(sscanf(content.c_str(), "%d", &trick_number) != 1) return false;
     std::cout<< "Wrong message received in trick "<<trick_number<<".\n";
-    std::cout << "Try again trick: ("<<trick_number<< ") " << all_games.currentGame()->tricks[trick_number].cardsToString() << std::endl;
-    all_games.players[me].wrongCard(all_games.currentGame()->tricks[trick_number].getCards()[me]);
+    std::cout << "Try again trick: ("<<trick_number<< ") " << all_games.currentGame().tricks[trick_number].cardsToString() << std::endl;
+    all_games.players[me].wrongCard(all_games.currentGame().tricks[trick_number].getCards()[me]);
     std::cout << "Available: " << all_games.players[me].cardsToString() << std::endl;
     std::cout << "Choose a card to play (write !<card code><enter> for example !2D<enter> : \n";
     waiting_for_a_card=trick_number;

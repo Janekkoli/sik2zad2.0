@@ -24,7 +24,7 @@ int send_IAM(int fd, const char *seat);
 
 int send_BUSY(int fd, const char *busy_seats);
 
-int send_DEAL(int fd, const char *deal_type, const char *first_seat, const char *cards);
+int send_DEAL(int fd, int deal_type, char first_seat, const std::string &cards);
 
 int send_TRICK(int fd, int trick_number, const char *cards);
 
