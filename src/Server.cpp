@@ -56,7 +56,6 @@ void Server::run() {
                     error("error when reading message from connection %d", i);
                     closeConnection(i);
                 } else if (received_bytes == 0) {
-                    printf("ending connection (%d)\n", i);
                     closeConnection(i);
                 } else {
                     //recived message
@@ -74,11 +73,8 @@ void Server::run() {
 
 void Server::checkTimeouts() { // check if active connections send right message on time
     for (int i = 1; i < CONNECTIONS_MAX; i++) {
-        if (poll_descriptors[i].fd != -1 && currentTime() - connectionsDesc[i].connTime >
-            1000 * socketTimeOut && connectionsDesc[i].player == nullptr) {
-            printf("ending connection (%d)\n", i);
-            close(poll_descriptors[i].fd);
-            poll_descriptors[i].fd = -1;
+        if (poll_descriptors[i].fd != -1 && (currentTime() - connectionsDesc[i].connTime > 1000 * socketTimeOut) && connectionsDesc[i].player == None) {
+            closeConnection(i);
         }
     }
 }
@@ -99,7 +95,7 @@ void Server::handleNewConnection() {
             poll_descriptors[i].fd = client_fd;
             poll_descriptors[i].events = POLLIN;
             connectionsDesc[i].connTime = currentTime();
-            connectionsDesc[i].player = nullptr; // no player yet
+            connectionsDesc[i].player = None; // no player yet
             accepted = true;
             break;
         }
@@ -161,7 +157,18 @@ long Server::currentTime() {
 }
 
 void Server::closeConnection(const int i) {
-    connectionsDesc[i].player = nullptr;
+    std::cout<<"closing connection: "<<i<<std::endl;
+    if(connectionsDesc[i].player!=None) playersConnectionsNumbers[connectionsDesc[i].player]=0; //delete player from active players
+    connectionsDesc[i].isDealSend = false;
+    connectionsDesc[i].player = None;
     close(poll_descriptors[i].fd);
     poll_descriptors[i].fd = -1;
+
+}
+
+void Server::checkIfSendTrickMess() {
+    if(repeatingCurrentTrickTime == 0) return;
+    if(currentTime()-repeatingCurrentTrickTime > 1000*socketTimeOut) {
+        sendTrickMess();
+    }
 }

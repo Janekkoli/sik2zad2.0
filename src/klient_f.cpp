@@ -74,7 +74,7 @@ void dealWith_DEAL(std::string content)
     Card *karty = new Card[13];
     if(13!=cardStringToArray(cards, karty, 13)) return;
     all_games.players[me].setCards(karty);
-    all_games.startNewGame(Game(deal_type, fromChar(first_seat)));
+    all_games.AddNewGame(Game(deal_type, fromChar(first_seat)));
 }
 
 bool dealwith_TRICK(std::string content)

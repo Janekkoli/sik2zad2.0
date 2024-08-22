@@ -28,6 +28,10 @@ public:
         return cards[first_player];
     }
 
+    void sendTrickMess(int fd) {
+        send_TRICK(fd, trickNumber, cardsToShortString().c_str());
+    }
+
     [[nodiscard]] PlayersSides getWinner() const {
         return winner;
     }
@@ -36,6 +40,16 @@ public:
         PlayersSides x = first_player;
         for(int i=0; i<4; i++){
             s+=cards[x].toString() + " ";
+            ++x;
+        }
+        return s;
+    }
+
+    std::string cardsToShortString() {
+        std::string s;
+        PlayersSides x = first_player;
+        for(int i=0; i<4; i++){
+            s+=cards[x].toString();
             ++x;
         }
         return s;

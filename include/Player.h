@@ -12,6 +12,7 @@ private:
     PlayersSides seat=N;
     int points=0;
 public:
+    int fd = -1;
     Player(PlayersSides seat) : seat(seat){}
     Player()= default;
     void setCards(Card *c){
@@ -26,7 +27,6 @@ public:
             if(i==12)return false;
         }
         return true;
-
     }
     bool wrongCard(Card card){ //player cant play this card
         for(int i=0; i<13; i++){

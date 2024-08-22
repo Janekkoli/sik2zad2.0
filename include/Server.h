@@ -13,8 +13,9 @@
 #define BUFFER_SIZE 1000
 #define DELIMITER "\r\n"
 struct connection {
-  time_t connTime;
-  Player *player;
+  time_t connTime = 0;
+  PlayersSides player = None;
+  bool isDealSend = false;
 };
 class Server {
 public:
@@ -39,7 +40,8 @@ private:
   connection connectionsDesc[CONNECTIONS_MAX];
   char buffer[BUFFER_SIZE];
   bool finish = false;
-  std::map<PlayersSides, int> playersDescriptors;
+  std::map<PlayersSides, int> playersConnectionsNumbers;
+  time_t repeatingCurrentTrickTime = 0;  //time when last trick was send
   void checkTimeouts();
   void handleNewConnection();
   void createSocket();
@@ -58,7 +60,7 @@ private:
     while ((pos = message.find(DELIMITER)) != std::string::npos) {
         token = message.substr(0, pos);
         message.erase(0, pos + delimiter.length());
-        if(token.substr(0, 3) == "IAM") dealwith_IAM(connNumber, token.substr(3));
+        if(token.substr(0, 3) == "IAM" && connectionsDesc[connNumber].player==None) dealwith_IAM(connNumber, token.substr(3)); //only client without player can send IAM...
         // else if(token.substr(0, 5) == "TOTAL") dealwith_TOTAL(token.substr(5));
         // else if(token.substr(0, 5) == "SCORE") dealwith_SCORE(token.substr(5));
         // else if(token.substr(0, 5) == "TAKEN") dealwith_TAKEN(token.substr(5));
@@ -73,21 +75,39 @@ private:
   void dealwith_IAM(int connNumber, std::string content) {
     std::cout<<"IAM: "<<content<<" number: "<<connNumber<<std::endl;
     PlayersSides seat;
-    try {seat = fromChar(content[0]);} catch (std::invalid_argument &e) {return;} // invalid seat
-    if(playersDescriptors[seat]!=0) { //there is already active player i have to send busy
-      std::string busySeats = "";
+    try {seat = fromChar(content[0]);} catch (std::invalid_argument &e) {closeConnection(connNumber);return;} // invalid seat
+    if(playersConnectionsNumbers[seat]!=0) { //there is already active player i have to send busy
+      std::string busySeats;
       for(PlayersSides s: {N,E,S,W}) {
-        if(playersDescriptors[s]!=0) busySeats+=static_cast<char>(s);
+        if(playersConnectionsNumbers[s]!=0) busySeats+=static_cast<char>(s);
       }
       send_BUSY(poll_descriptors[connNumber].fd, busySeats.c_str());
+      closeConnection(connNumber);
       return;
     }
-    playersDescriptors[seat] = poll_descriptors[connNumber].fd;
-    all_games.addNewConnectPlayer(seat, poll_descriptors[connNumber].fd);
-
+    playersConnectionsNumbers[seat] = connNumber;
+    connectionsDesc[connNumber].player = seat;
+    checkPlayersReadyAndSendThemDeals();
   }
   // static void catch_int(int sig) {
   //   finish = true;
   //   std::cout << "signal catched so no new connections will be accepted\n";
   // }
+  void checkPlayersReadyAndSendThemDeals() {
+    for(PlayersSides s: {N,E,S,W}) {
+      if(playersConnectionsNumbers[s]==0) return;
+    }
+    for(PlayersSides s: {N,E,S,W}) {
+      if(connectionsDesc[playersConnectionsNumbers[s]].isDealSend) continue;
+      connectionsDesc[playersConnectionsNumbers[s]].isDealSend = true;
+      all_games.sendDealMess(s, poll_descriptors[playersConnectionsNumbers[s]].fd);
+    }
+    sendTrickMess();  //send Trick mess again when new player reconnects ???? looks like it makes sense
+  }
+
+  void sendTrickMess() {
+    repeatingCurrentTrickTime = currentTime();
+    all_games.sendTrickMess();
+  }
+  void checkIfSendTrickMess();
 };

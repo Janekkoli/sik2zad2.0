@@ -12,21 +12,26 @@ private:
 
 public:
   std::map<PlayersSides, Player> players;
+  std::map<PlayersSides, int> playersFd;
   All_Games() {
-    players[N] = Player();
-    players[E] = Player();
-    players[S] = Player();
-    players[W] = Player();
+    players[N] = Player(N);
+    players[E] = Player(E);
+    players[S] = Player(S);
+    players[W] = Player(W);
   }
   void addGame(Game game) { games.push_back(game); }
-
-  void addNewConnectPlayer(const PlayersSides side, const int fd) { //adding newely connected player and sending him his info
-    //TODO also send past tricks
-    std::cout<<"XDDD"<<side<<" games num"<<games.size()<<std::endl;
-    send_DEAL(fd, currentGame().game_type, currentGame().first_player,currentGame().players_cards[side]);
+  Player* getPlayer(const PlayersSides side) { return &players[side]; }
+  void sendDealMess(const PlayersSides side, const int fd) { //adding newely connected player and sending him his info
+      currentGame().sendDealMess(side, fd);
   }
 
-  bool startNewGame(Game game) {
+  void sendTrickMess() {
+    for(PlayersSides s: {N,E,S,W})
+      playersFd[s] = players[s].fd;
+    currentGame().sendTrickMess(&playersFd);
+  }
+
+  bool AddNewGame(Game game) {
     if (!(games.empty() || games.back().finished))
       return false;
     games.push_back(game);
@@ -35,7 +40,7 @@ public:
 
   Game currentGame() {
     //there must be some current game if no game is finished
-    return games.back();
+    return games.front();
   }
   Game *lastGame() {
     if (games.empty())

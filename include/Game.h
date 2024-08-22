@@ -1,25 +1,36 @@
 #pragma once
 #include "Trick.h"
-#include <bits/stdc++.h>
+#include "Player.h"
 #include <map>
 #include <string>
 class Game {
 public:
     int game_type;
     bool finished=false;
-    PlayersSides first_player;
+    PlayersSides firstPlayer, currentPlayer;
     std::map<PlayersSides,std::string> players_cards;
     Trick tricks[14];
-    Game( int game_type,PlayersSides first_player) : game_type(game_type), first_player(first_player) {}
+    int currentTrick = 1;
+    Game( int game_type,PlayersSides first_player) : game_type(game_type), firstPlayer(first_player) {currentPlayer = first_player;}
     void addTrick(Trick trick){
         tricks[trick.getTrickNumber()]=trick;
     }
+
+    void sendDealMess(const PlayersSides side, const int fd) { //adding newely connected player and sending him his info
+        //TODO also send past tricks
+        send_DEAL(fd, game_type, firstPlayer,players_cards[side]);
+    }
+
+    void sendTrickMess(std::map<PlayersSides, int>  *playersFd) {
+        tricks[currentTrick].sendTrickMess((*playersFd)[currentPlayer]);
+    }
+
     void setCards(PlayersSides side, std::string cards){
         players_cards[side]=cards;
     }
     void print(){
         std::cout<<"Game type: "<<game_type<<std::endl;
-        std::cout<<"First player: "<<first_player<<std::endl;
+        std::cout<<"First player: "<<firstPlayer<<std::endl;
         PlayersSides side = N;
         for(int i = 0 ;i<4;i++)
         {

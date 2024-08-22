@@ -36,7 +36,7 @@ int send_SCORE(int fd, int score1, int score2, int score3, int score4);
 
 int send_TOTAL(int fd, int score1, int score2, int score3, int score4);
 
-enum PlayersSides {N='N', E='E', S='S', W='W'};
+enum PlayersSides {N='N', E='E', S='S', W='W', None = 'X'};
 
 // inline bool operator==(PlayersSides &lhs, PlayersSides &rhs) {
 //     return static_cast<char>(lhs) == static_cast<char>(rhs);
@@ -45,19 +45,7 @@ enum PlayersSides {N='N', E='E', S='S', W='W'};
 //     return static_cast<char>(lhs) != static_cast<char>(rhs);
 // }
 
-inline bool operator<=(PlayersSides &lhs, PlayersSides &rhs) {
-    //if(lhs == N) return true;
-     if(lhs == E && rhs == N) return false;
-    // if(lhs == E) return true;
-    // if(lhs == S && rhs != W) return true;
-    // if(lhs == S) return false;
-    // if(lhs == W && rhs != W) return false;
-    return true;
-}
 
-inline std::ostream& operator<<(std::ostream& os, PlayersSides side) {
-    return os << static_cast<char>(side);
-}
 
 
 inline PlayersSides operator++(PlayersSides &c) {
@@ -74,6 +62,7 @@ inline PlayersSides operator++(PlayersSides &c) {
         case W:
             c = N;
             break;
+        default: return None;
     }
     return c;
 }
@@ -88,8 +77,8 @@ inline PlayersSides operator--(PlayersSides &c) {
             return E;
         case W:
             return S;
+        default: return None;
     }
-    return N;
 }
 inline PlayersSides operator+(PlayersSides c, int i) {
     switch (c) {
@@ -101,8 +90,8 @@ inline PlayersSides operator+(PlayersSides c, int i) {
             return static_cast<PlayersSides>(i+2);
         case W:
             return static_cast<PlayersSides>(i+3);
+        default: return None;
     }
-    return N;
 }
 inline PlayersSides operator-(PlayersSides c, int i) {
     switch (c) {
@@ -114,8 +103,8 @@ inline PlayersSides operator-(PlayersSides c, int i) {
             return static_cast<PlayersSides>(i-2);
         case W:
             return static_cast<PlayersSides>(i-3);
+        default: return None;
     }
-    return N;
 }
 
 PlayersSides fromChar(char c);
