@@ -18,7 +18,7 @@ void Server::run() {
         poll_descriptors[i].fd = -1;
         poll_descriptors[i].events = POLLIN;
     }
-
+    startNewGame(); //start first game
     do {
         for (auto &[fd, events, revents] : poll_descriptors) {
             revents = 0;
@@ -40,6 +40,7 @@ void Server::run() {
             }
         }
         checkTimeouts();
+        checkIfSendTrickMess();  //check if current trick should be sended again
         if (!finish && (poll_descriptors[0].revents & POLLIN)) {
             // New connection: new client is accepted.
             handleNewConnection();
@@ -158,12 +159,32 @@ long Server::currentTime() {
 
 void Server::closeConnection(const int i) {
     std::cout<<"closing connection: "<<i<<std::endl;
-    if(connectionsDesc[i].player!=None) playersConnectionsNumbers[connectionsDesc[i].player]=0; //delete player from active players
+    if(connectionsDesc[i].player!=None) { playersConnectionsNumbers[connectionsDesc[i].player]=0; all_games.players[connectionsDesc[i].player].fd = 0; } //delete player from active players
     connectionsDesc[i].isDealSend = false;
     connectionsDesc[i].player = None;
     close(poll_descriptors[i].fd);
     poll_descriptors[i].fd = -1;
 
+
+}
+
+void Server::dealwith_IAM(int connNumber, std::string content) {
+    std::cout<<"IAM: "<<content<<" number: "<<connNumber<<std::endl;
+    PlayersSides seat;
+    try {seat = fromChar(content[0]);} catch (std::invalid_argument &e) {closeConnection(connNumber);return;} // invalid seat
+    if(playersConnectionsNumbers[seat]!=0) { //there is already active player i have to send busy
+        std::string busySeats;
+        for(PlayersSides s: {N,E,S,W}) {
+            if(playersConnectionsNumbers[s]!=0) busySeats+=static_cast<char>(s);
+        }
+        send_BUSY(poll_descriptors[connNumber].fd, busySeats.c_str());
+        closeConnection(connNumber);
+        return;
+    }
+    all_games.players[seat].fd = poll_descriptors[connNumber].fd; //players know his fd number
+    playersConnectionsNumbers[seat] = connNumber;
+    connectionsDesc[connNumber].player = seat;
+    checkPlayersReadyAndSendThemDeals();
 }
 
 void Server::checkIfSendTrickMess() {
@@ -171,4 +192,5 @@ void Server::checkIfSendTrickMess() {
     if(currentTime()-repeatingCurrentTrickTime > 1000*socketTimeOut) {
         sendTrickMess();
     }
+
 }

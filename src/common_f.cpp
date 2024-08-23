@@ -26,7 +26,7 @@ int cardStringToArray(const std::string& karty, Card* wyn, int n)
 
 
 
-void split_tricknum_rest(std::string content, int &trick_number, std::string &cards)
+void split_tricknum_rest(const std::string& content, int &trick_number, std::string &cards)  //splits trick number and cards
 {
     sscanf(content.c_str(), "%d", &trick_number);
     std::cout<< trick_number <<"- \n";

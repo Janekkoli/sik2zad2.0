@@ -13,8 +13,9 @@
 #include <stdexcept>
 #include <map>
 #include "err.h"
+#include "Card.h"
 #include <unistd.h>
-
+#include <vector>
 
 uint16_t read_port(char const *string);
 ssize_t	readn(int fd, void *vptr, size_t n);
@@ -111,11 +112,24 @@ PlayersSides fromChar(char c);
 
 extern PlayersSides me;
 
-
+inline std::vector<Card> cardStringToArray2(const std::string& cardsString)
+{
+    std::string k;
+    std::vector<Card> wyn;
+    for(auto & c : cardsString){
+        k+=c;
+        if(c=='C' || c=='D' || c=='H' || c=='S'){
+            try{wyn.emplace_back(k);}
+            catch(std::invalid_argument &e){ return {};}
+            k = "";
+        }
+    }
+    return {};
+}
 
 
 
 
 void split_and_execute(std::string message, bool (*dealwith_TRICK) (std::string));
-void split_tricknum_rest(std::string content, int &trick_number, std::string &cards);
+void split_tricknum_rest(const std::string& content, int &trick_number, std::string &cards);
 #endif //ZAD2_SIK_COMMON_H

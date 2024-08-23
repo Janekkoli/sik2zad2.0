@@ -61,42 +61,39 @@ private:
         token = message.substr(0, pos);
         message.erase(0, pos + delimiter.length());
         if(token.substr(0, 3) == "IAM" && connectionsDesc[connNumber].player==None) dealwith_IAM(connNumber, token.substr(3)); //only client without player can send IAM...
+        else if(connectionsDesc[connNumber].player == None) {closeConnection(connNumber);} // close connection if client without player sends sth else than IAM
         // else if(token.substr(0, 5) == "TOTAL") dealwith_TOTAL(token.substr(5));
         // else if(token.substr(0, 5) == "SCORE") dealwith_SCORE(token.substr(5));
         // else if(token.substr(0, 5) == "TAKEN") dealwith_TAKEN(token.substr(5));
         // else if(token.substr(0, 5) == "WRONG") dealwith_WRONG(token.substr(5));
-        // else if(token.substr(0, 5) == "TRICK") dealwith_TRICK(token.substr(5));
+        else if(token.substr(0, 5) == "TRICK") dealwith_TRICK(token.substr(5), connectionsDesc[connNumber].player, connNumber);
         // else if(token.substr(0, 4) == "DEAL") dealWith_DEAL(token.substr(4));
         // else if(token.substr(0, 4) == "BUSY") dealWith_BUSY(token.substr(4));
         else continue;
       }
   }
 
-  void dealwith_IAM(int connNumber, std::string content) {
-    std::cout<<"IAM: "<<content<<" number: "<<connNumber<<std::endl;
-    PlayersSides seat;
-    try {seat = fromChar(content[0]);} catch (std::invalid_argument &e) {closeConnection(connNumber);return;} // invalid seat
-    if(playersConnectionsNumbers[seat]!=0) { //there is already active player i have to send busy
-      std::string busySeats;
-      for(PlayersSides s: {N,E,S,W}) {
-        if(playersConnectionsNumbers[s]!=0) busySeats+=static_cast<char>(s);
-      }
-      send_BUSY(poll_descriptors[connNumber].fd, busySeats.c_str());
-      closeConnection(connNumber);
-      return;
-    }
-    playersConnectionsNumbers[seat] = connNumber;
-    connectionsDesc[connNumber].player = seat;
-    checkPlayersReadyAndSendThemDeals();
+  void dealwith_TRICK(const std::string& content, const PlayersSides side, const int connNumber) {
+    int trickNumber;
+    std::string cardString;
+    split_tricknum_rest(content, trickNumber, cardString);
+    std::cout<<"Trick message received: "<<trickNumber<<" "<<cardString<<std::endl;
+    Card card;
+    try{ card = Card(cardString);} catch(std::exception& e) {send_WRONG(connNumber, trickNumber);return;}
+    if(!all_games.playCard(side, card, trickNumber )) {send_WRONG(connNumber, trickNumber);return;}
+    //card was correctly played
+    sendTrickMess(); //so im sending message to next person
+
   }
+
+  void dealwith_IAM(int connNumber, std::string content);
+
   // static void catch_int(int sig) {
   //   finish = true;
   //   std::cout << "signal catched so no new connections will be accepted\n";
   // }
   void checkPlayersReadyAndSendThemDeals() {
-    for(PlayersSides s: {N,E,S,W}) {
-      if(playersConnectionsNumbers[s]==0) return;
-    }
+    if(!areAllClientsConnected()) return;
     for(PlayersSides s: {N,E,S,W}) {
       if(connectionsDesc[playersConnectionsNumbers[s]].isDealSend) continue;
       connectionsDesc[playersConnectionsNumbers[s]].isDealSend = true;
@@ -106,8 +103,25 @@ private:
   }
 
   void sendTrickMess() {
+    if(!areAllClientsConnected()) return;
     repeatingCurrentTrickTime = currentTime();
     all_games.sendTrickMess();
   }
+
+  void startNewGame() {
+    for(PlayersSides s: {N,E,S,W})
+    {connectionsDesc[playersConnectionsNumbers[s]].isDealSend= false; } //has to send new deals
+    all_games.startNewGame();
+    checkPlayersReadyAndSendThemDeals(); //if starting new game sending deals can be necessary
+
+  }
+
   void checkIfSendTrickMess();
+
+  bool areAllClientsConnected() {
+    for(PlayersSides s: {N,E,S,W}) {
+      if(playersConnectionsNumbers[s]==0) return false;
+    }
+    return true;
+  }
 };

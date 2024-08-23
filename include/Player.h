@@ -8,16 +8,21 @@
 #include "Game.h"
 class Player {
 private:
-    Card *cards = nullptr;//[13];
+    std::vector<Card> cards;
     PlayersSides seat=N;
     int points=0;
 public:
     int fd = -1;
     Player(PlayersSides seat) : seat(seat){}
     Player()= default;
-    void setCards(Card *c){
-        delete[] cards;
-        cards=c;}
+
+
+    void setCards(const std::vector<Card>& cards){
+        this->cards=cards;
+    }
+
+
+    //old design
     bool playCard(Card card){
         for(int i=0; i<13; i++){
             if(cards[i]==card){
@@ -52,7 +57,7 @@ public:
     }
     std::string cardsToString(){
         std::string s;
-        if(cards==nullptr)return "no cards";
+        if(cards.empty())return "no cards";
         for(int i=0;i<13;i++){
             if(cards[i].isPlayed())continue;
             s+=cards[i].toString() + " ";

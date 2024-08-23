@@ -56,6 +56,7 @@ public:
   void wrong() { played = false; }
 
   [[nodiscard]] std::string toString() const {
+    if(value == -1) return "";
     std::string s;
     if (value == 10)
       s = "10";

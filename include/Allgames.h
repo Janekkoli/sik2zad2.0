@@ -8,7 +8,7 @@
 #include "common.h"
 class All_Games {
 private:
-  std::list<Game> games;
+  std::list<Game> games = {Game(0, None)};
 
 public:
   std::map<PlayersSides, Player> players;
@@ -29,6 +29,18 @@ public:
     for(PlayersSides s: {N,E,S,W})
       playersFd[s] = players[s].fd;
     currentGame().sendTrickMess(&playersFd);
+  }
+
+  void startNewGame() {
+    for(PlayersSides s: {N,E,S,W}) {
+      players[s].setCards(cardStringToArray2(currentGame().players_cards[s])); //setting cards for players
+    }
+    games.pop_front(); //go to next game
+    //TODO ???
+  }
+
+  bool playCard(const PlayersSides side, const Card card, const int trickNumber) {
+    return currentGame().playCard(side, card, trickNumber);
   }
 
   bool AddNewGame(Game game) {
