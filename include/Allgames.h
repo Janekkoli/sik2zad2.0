@@ -40,6 +40,7 @@ public:
   }
 
   bool playCard(const PlayersSides side, const Card card, const int trickNumber) {
+    if(!players[side].canPlayThisCard(card, currentGame().tricks[trickNumber].trickColor())) return false; //player has this card and color is alright
     return currentGame().playCard(side, card, trickNumber);
   }
 

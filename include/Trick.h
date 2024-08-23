@@ -9,13 +9,24 @@
 class Trick {
 private:
     std::map<PlayersSides,Card> cards;
-    PlayersSides nextPlayer;
-    PlayersSides first_player;
+    PlayersSides firstPlayer;
     int trickNumber = -1;
     PlayersSides winner;
 public:
-    Trick(PlayersSides first_player, int trickNumber) : first_player(first_player), trickNumber(trickNumber) {nextPlayer = first_player;}
+    Trick(PlayersSides first_player, int trickNumber) : firstPlayer(first_player), trickNumber(trickNumber) {currentPlayer = first_player;}
     Trick()= default;
+    PlayersSides currentPlayer;
+
+    void sendTakenMess(PlayersSides side, int fd) {
+        //TODO send taken message to client :)))
+    }
+
+    bool playCard(PlayersSides side, Card card){
+        if(side!=currentPlayer)return false;
+        cards[side] = card;
+        ++currentPlayer;
+        return true;
+    }
 
     std::map<PlayersSides, Card> getCards() const {
         return cards;
@@ -25,7 +36,7 @@ public:
     }
 
     Card getFirstCardPlayed(){
-        return cards[first_player];
+        return cards[firstPlayer];
     }
 
     void sendTrickMess(int fd) {
@@ -37,7 +48,7 @@ public:
     }
     std::string cardsToString(){
         std::string s;
-        PlayersSides x = first_player;
+        PlayersSides x = firstPlayer;
         for(int i=0; i<4; i++){
             s+=cards[x].toString() + " ";
             ++x;
@@ -47,7 +58,7 @@ public:
 
     std::string cardsToShortString() {
         std::string s;
-        PlayersSides x = first_player;
+        PlayersSides x = firstPlayer;
         for(int i=0; i<4; i++){
             s+=cards[x].toString();
             ++x;
@@ -57,6 +68,10 @@ public:
 
     [[nodiscard]] int getTrickNumber() const {
         return trickNumber;
+    }
+
+    char trickColor() { // 0 if no card was assign
+        return cards[firstPlayer].getColor();
     }
 
     int points(int t){
@@ -103,8 +118,8 @@ public:
     bool addCard(Card card){
         //player has to play the same color as the first card if he has one
         //---
-        cards[nextPlayer] = card;
-        ++nextPlayer;
+        cards[currentPlayer] = card;
+        ++currentPlayer;
         return true;
     }
 };

@@ -7,12 +7,11 @@ class Game {
 public:
     int game_type;
     bool finished=false;
-    PlayersSides firstPlayer, currentPlayer;
+    PlayersSides firstPlayer;
     std::map<PlayersSides,std::string> players_cards;
     Trick tricks[14];
     int currentTrick = 1;
-    Game( int game_type,PlayersSides first_player) : game_type(game_type), firstPlayer(first_player) {
-        currentPlayer = first_player;
+    Game( int game_type,PlayersSides first_player) : game_type(game_type) , firstPlayer(first_player){
         tricks[1] = Trick(first_player,1); //setting first trick
     }
     void addTrick(Trick trick){
@@ -20,10 +19,18 @@ public:
     }
 
     bool playCard(const PlayersSides side, const Card card, const int trickNumber) {
-        if(side != currentPlayer) return false; //check player corretness
         if(trickNumber != currentTrick) return false; // check trick number
-        //TODO check if player has this card and if it has right color
-
+        if(!tricks[currentTrick].playCard(side, card)) return false;
+        if(side == W) {
+            if(currentTrick == 13) {
+                finished = true;
+                //TODO send score
+            }
+            else {
+                ++currentTrick;
+                tricks[currentTrick] = Trick(tricks[currentTrick-1].getWinner(), currentTrick);
+            }
+        }
 
     }
 
@@ -34,7 +41,7 @@ public:
     }
 
     void sendTrickMess(std::map<PlayersSides, int>  *playersFd) {
-        tricks[currentTrick].sendTrickMess((*playersFd)[currentPlayer]);
+        tricks[currentTrick].sendTrickMess((*playersFd)[tricks[currentTrick].currentPlayer]);
     }
 
     void setCards(PlayersSides side, std::string cards){

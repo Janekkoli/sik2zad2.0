@@ -21,6 +21,16 @@ public:
         this->cards=cards;
     }
 
+    bool canPlayThisCard(Card card, char trickColor) {
+        if(card.getColor() != trickColor && trickColor!=0)
+            for(Card c: cards)
+                if(c.getColor() == trickColor)
+                    return false;
+        for(Card c: cards)
+            if(c==card)
+                return true;
+        return false;
+    }
 
     //old design
     bool playCard(Card card){
