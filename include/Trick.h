@@ -12,19 +12,29 @@ private:
     PlayersSides firstPlayer;
     int trickNumber = -1;
     PlayersSides winner;
+    int trickType;
 public:
-    Trick(PlayersSides first_player, int trickNumber) : firstPlayer(first_player), trickNumber(trickNumber) {currentPlayer = first_player;}
+    Trick(PlayersSides first_player, int trickNumber, int trickType) : firstPlayer(first_player), trickNumber(trickNumber), trickType(trickType) {currentPlayer = first_player;winner=firstPlayer;}
     Trick()= default;
     PlayersSides currentPlayer;
 
     void sendTakenMess(PlayersSides side, int fd) {
-        //TODO send taken message to client :)))
+        send_TAKEN(fd, trickNumber, cardsToShortString().c_str(), reinterpret_cast<const char *>(winner));
+    }
+
+    void establishWinner() {
+        char trickColor = cards[firstPlayer].getColor();
+        for(PlayersSides s: {N,E,S,W}){
+            if(cards[s].getColor() == trickColor && cards[s].getValue() > cards[winner].getValue())
+                winner = s;
+        }
     }
 
     bool playCard(PlayersSides side, Card card){
         if(side!=currentPlayer)return false;
         cards[side] = card;
         ++currentPlayer;
+        establishWinner();
         return true;
     }
 
@@ -73,8 +83,11 @@ public:
     char trickColor() { // 0 if no card was assign
         return cards[firstPlayer].getColor();
     }
-
+    int points() {
+        return points(trickType);
+    }
     int points(int t){
+        if(currentPlayer+1 != firstPlayer) return -1; //trick is not finished
         /*1 - nie brać lew, za każdą wziętą lewę dostaje się 1 punkt;
         2 - nie brać kierów, za każdego wziętego kiera dostaje się 1 punkt;
         3 -nie brać dam, za każdą wziętą damę dostaje się 5 punktów;

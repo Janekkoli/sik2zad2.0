@@ -82,6 +82,7 @@ private:
     try{ card = Card(cardString);} catch(std::exception& e) {send_WRONG(connNumber, trickNumber);return;}
     if(!all_games.playCard(side, card, trickNumber )) {send_WRONG(connNumber, trickNumber);return;}
     //card was correctly played
+    //TODO has to know if game ends
     sendTrickMess(); //so im sending message to next person
 
   }

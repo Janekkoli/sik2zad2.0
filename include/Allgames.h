@@ -40,8 +40,17 @@ public:
   }
 
   bool playCard(const PlayersSides side, const Card card, const int trickNumber) {
-    if(!players[side].canPlayThisCard(card, currentGame().tricks[trickNumber].trickColor())) return false; //player has this card and color is alright
-    return currentGame().playCard(side, card, trickNumber);
+    if(!players[side].canPlayThisCard(card, currentGame().tricks[trickNumber].trickColor())) return false;
+    //player has this card and color is alright
+    if(!currentGame().playCard(side, card, trickNumber, playersFd)) return false;
+    if(currentGame().finished) { //game finished
+      for(PlayersSides s: {N,E,S,W}) {
+        players[s].receivePoints(currentGame().playersScore[s]);
+        //TODO send score !!!
+      }
+      //TODO send info to server that new game is coming or something else
+    }
+    return true;
   }
 
   bool AddNewGame(Game game) {
