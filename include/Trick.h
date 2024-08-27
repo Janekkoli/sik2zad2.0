@@ -18,7 +18,12 @@ public:
     Trick()= default;
     PlayersSides currentPlayer;
 
-    void sendTakenMess(PlayersSides side, int fd) {
+    bool isTrickNew() { //true is no card was played in trick yet
+        if(currentPlayer==firstPlayer) return true;
+        return false;
+    }
+
+    void sendTakenMess( int fd) {
         send_TAKEN(fd, trickNumber, cardsToShortString().c_str(), reinterpret_cast<const char *>(winner));
     }
 
@@ -38,7 +43,7 @@ public:
         return true;
     }
 
-    std::map<PlayersSides, Card> getCards() const {
+    [[nodiscard]] std::map<PlayersSides, Card> getCards() const {
         return cards;
     }
     void setWinner(PlayersSides winner) {

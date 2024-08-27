@@ -31,12 +31,17 @@ public:
     currentGame().sendTrickMess(&playersFd);
   }
 
+  void sendTotalMess() {
+    for(PlayersSides s: {N,E,S,W}) {
+      send_TOTAL(players[s].fd, players[N].getPoints(), players[E].getPoints(), players[S].getPoints(), players[W].getPoints());
+    }
+  }
+
   void startNewGame() {
     for(PlayersSides s: {N,E,S,W}) {
       players[s].setCards(cardStringToArray2(currentGame().players_cards[s])); //setting cards for players
     }
     games.pop_front(); //go to next game
-    //TODO ???
   }
 
   bool playCard(const PlayersSides side, const Card card, const int trickNumber) {
@@ -46,9 +51,8 @@ public:
     if(currentGame().finished) { //game finished
       for(PlayersSides s: {N,E,S,W}) {
         players[s].receivePoints(currentGame().playersScore[s]);
-        //TODO send score !!!
+        send_SCORE(players[s].fd, currentGame().playersScore[N], currentGame().playersScore[E], currentGame().playersScore[S], currentGame().playersScore[W] );
       }
-      //TODO send info to server that new game is coming or something else
     }
     return true;
   }

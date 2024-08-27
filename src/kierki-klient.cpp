@@ -128,7 +128,8 @@ int main(int argc, char *argv[]) {
         }
         if (fds[1].revents & POLLIN) {
             if((message=readall(socket_fd)).empty()) syserr("disconnected from server");
-            split_and_execute(message, dealwith_TRICK);
+            //split_and_execute(message, dealwith_TRICK);
+            //TODO dont know what is going on here
         }
     }
 

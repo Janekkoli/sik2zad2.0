@@ -16,7 +16,9 @@
 #include "Card.h"
 #include <unistd.h>
 #include <vector>
+#define TRICK_NUMBER (13)
 
+class Card; //class card for functions definitions :)
 uint16_t read_port(char const *string);
 ssize_t	readn(int fd, void *vptr, size_t n);
 ssize_t	writen(int fd, const void *vptr, size_t n);

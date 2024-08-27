@@ -18,6 +18,7 @@
 #include <signal.h>
 #include "err.h"
 #include <iostream>
+#define BAD_DESCRIPTOR (-1)
 PlayersSides me;
 
 uint16_t read_port(char const *string) {
@@ -86,47 +87,55 @@ ssize_t writen(int fd, const void *vptr, size_t n) {
 
 
 int send_IAM(int fd, const char *seat) {
+    if(fd<1) return BAD_DESCRIPTOR;
     char buffer[6] = {'I', 'A', 'M', *seat, '\r', '\n'};
     return writen(fd, buffer, 6);
 }
 
 int send_TOTAL(int fd, int score1, int score2, int score3, int score4) {
+    if(fd<1) return BAD_DESCRIPTOR;
     char buffer[MAX_MESSAGE_SIZE];
     snprintf(buffer, MAX_MESSAGE_SIZE, "TOTALN%dE%dS%dW%d\r\n", score1, score2, score3, score4);
     return writen(fd, buffer, strlen(buffer));
 }
 
 int send_SCORE(int fd, int score1, int score2, int score3, int score4) {
+    if(fd<1) return BAD_DESCRIPTOR;
     char buffer[MAX_MESSAGE_SIZE];
     snprintf(buffer, MAX_MESSAGE_SIZE, "SCOREN%dE%dS%dW%d\r\n", score1, score2, score3, score4);
     return writen(fd, buffer, strlen(buffer));
 }
 
 int send_TAKEN(int fd, int trick_number, const char *cards, const char *winner_seat) {
+    if(fd<1) return BAD_DESCRIPTOR;
     char buffer[MAX_MESSAGE_SIZE];
     snprintf(buffer, MAX_MESSAGE_SIZE, "TAKEN%d%s%c\r\n", trick_number, cards, *winner_seat);
     return writen(fd, buffer, strlen(buffer));
 }
 
 int send_WRONG(int fd, int trick_number) {
+    if(fd<1) return BAD_DESCRIPTOR;
     char buffer[64];
     snprintf(buffer, 64, "WRONG%d\r\n", trick_number);
     return writen(fd, buffer, strlen(buffer));
 }
 
 int send_TRICK(int fd, int trick_number, const char *cards) {
+    if(fd<1) return BAD_DESCRIPTOR;
     char buffer[MAX_MESSAGE_SIZE];
     snprintf(buffer, MAX_MESSAGE_SIZE, "TRICK%d%s\r\n", trick_number, cards);
     return writen(fd, buffer, strlen(buffer));
 }
 
 int send_DEAL(int fd, int deal_type, const char first_seat, const std::string &cards) {
+    if(fd<1) return BAD_DESCRIPTOR;
     char buffer[MAX_MESSAGE_SIZE];
     snprintf(buffer, MAX_MESSAGE_SIZE, "DEAL%d%c%s\r\n", deal_type, first_seat, cards.c_str());
     return writen(fd, buffer, strlen(buffer));
 }
 
 int send_BUSY(int fd, const char *busy_seats) {
+    if(fd<1) return BAD_DESCRIPTOR;
     char buffer[64];
     snprintf(buffer, strlen(busy_seats)+6, "BUSY%s\r\n", busy_seats);
     return writen(fd, buffer, strlen(busy_seats)+6);

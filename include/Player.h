@@ -21,6 +21,9 @@ public:
         this->cards=cards;
     }
 
+    int getPoints() {
+        return points;
+    }
     bool canPlayThisCard(Card card, char trickColor) {
         if(card.getColor() != trickColor && trickColor!=0)
             for(Card c: cards)

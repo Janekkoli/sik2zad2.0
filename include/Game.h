@@ -19,6 +19,10 @@ public:
     void addTrick(Trick trick){
         tricks[trick.getTrickNumber()]=trick;
     }
+    bool isGameNew() { //true if no card was played in game yet
+        if(currentTrickNum==1 && currentTrick().isTrickNew()) return true;
+        return false;
+    }
     Trick currentTrick() {
         return tricks[currentTrickNum];
     }
@@ -28,20 +32,18 @@ public:
         if(currentTrick().points()!=-1) { //trick is finished
             playersScore[currentTrick().getWinner()]+=currentTrick().points();
             for(PlayersSides s: {N,E,S,W}) {
-                currentTrick().sendTakenMess(s, playersFd[s]); // sending taken to all players
+                currentTrick().sendTakenMess(playersFd[s]); // sending taken to all players
             }
             if(currentTrickNum == 13) {
                 finished = true;
                 //last trick ended so game is finished
-                //TODO send score or maybe not here
-
             }
             else {
                 ++currentTrickNum;
                 tricks[currentTrickNum] = Trick(tricks[currentTrickNum-1].getWinner(), currentTrickNum, gameType);
             }
         }
-
+        return true;
     }
 
 

@@ -64,20 +64,21 @@ void dealWith_BUSY(const std::string& content)
     std::cout << "Place busy, list of busy places received: " << content << "\n";
 }
 
-void dealWith_DEAL(std::string content)
+void dealWith_DEAL(const std::string& content)
 {
     int deal_type;
     char first_seat;
     char cards[256];
     if(sscanf(content.c_str(), "%d%c%s", &deal_type, &first_seat, cards) != 3) return;
     std::cout<< "New deal "<< deal_type <<": staring place "<< first_seat <<", your cards: "<< cards << ".\n";
-    Card *karty = new Card[13];
-    if(13!=cardStringToArray(cards, karty, 13)) return;
+    std::vector<Card> karty;
+    karty =cardStringToArray2(cards);
+    if(karty.size()!=TRICK_NUMBER) return;
     all_games.players[me].setCards(karty);
     all_games.AddNewGame(Game(deal_type, fromChar(first_seat)));
 }
 
-bool dealwith_TRICK(std::string content)
+bool dealwith_TRICK(const std::string &content)
 {
     int trick_number;
     std::string cards;
@@ -88,12 +89,12 @@ bool dealwith_TRICK(std::string content)
     waiting_for_a_card=trick_number;
     Card karty[4];
     int n = cardStringToArray(cards, karty, 4);
-    Trick lewa(me-n, trick_number);
+    Trick lewa(me-n, trick_number, 0); //TODO has to add trick type here
     for(int i=0; i<n; i++) lewa.addCard(karty[i]);
     //all_games.currentGame()->addTrick()
     return true;
 }
-bool dealwith_TAKEN(std::string content)
+bool dealwith_TAKEN(const std::string &content)
 {
     int trick_number;
     std::string cards;
@@ -103,7 +104,7 @@ bool dealwith_TAKEN(std::string content)
     winner_seat = content[content.size()-1];
     cards=cards.substr(0, cards.size()-1);
     std::cout<< "TAKEN " << trick_number << " " << cards << " " << winner_seat << std::endl;
-    Trick lewa(N, trick_number);
+    Trick lewa(N, trick_number, 0 ); //TODO has to add trick type here
     Card karty[4];
     if(4!=cardStringToArray(cards, karty, 4)) return false;
     for(auto i : karty) lewa.addCard(i);
