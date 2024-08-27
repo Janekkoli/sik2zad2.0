@@ -65,7 +65,7 @@ public:
     return true;
   }
 
-  Game currentGame() {
+  Game& currentGame() {
     //there must be some current game if no game is finished
     return games.front();
   }

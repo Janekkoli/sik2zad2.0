@@ -13,10 +13,12 @@ private:
     int trickNumber = -1;
     PlayersSides winner;
     int trickType;
+
 public:
+    PlayersSides currentPlayer;
+
     Trick(PlayersSides first_player, int trickNumber, int trickType) : firstPlayer(first_player), trickNumber(trickNumber), trickType(trickType) {currentPlayer = first_player;winner=firstPlayer;}
     Trick()= default;
-    PlayersSides currentPlayer;
 
     bool isTrickNew() { //true is no card was played in trick yet
         if(currentPlayer==firstPlayer) return true;
@@ -39,7 +41,7 @@ public:
         if(side!=currentPlayer)return false;
         cards[side] = card;
         ++currentPlayer;
-
+        std::cout<<"Current player: "<<currentPlayer<<"\n";
         establishWinner();
         return true;
     }
@@ -51,7 +53,7 @@ public:
         Trick::winner = winner;
     }
 
-    Card getFirstCardPlayed(){
+    Card& getFirstCardPlayed(){
         return cards[firstPlayer];
     }
 

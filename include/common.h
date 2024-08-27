@@ -48,7 +48,16 @@ enum PlayersSides {N='N', E='E', S='S', W='W', None = 'X'};
 //     return static_cast<char>(lhs) != static_cast<char>(rhs);
 // }
 
-
+inline std::ostream& operator<<(std::ostream& os, PlayersSides side) {
+    switch (side) {
+        case N: os << 'N'; break;
+        case E: os << 'E'; break;
+        case S: os << 'S'; break;
+        case W: os << 'W'; break;
+        default: os << 'X'; break; // Handle None or any other invalid value
+    }
+    return os;
+}
 
 
 inline PlayersSides operator++(PlayersSides &c) {
@@ -84,30 +93,12 @@ inline PlayersSides operator--(PlayersSides &c) {
     }
 }
 inline PlayersSides operator+(PlayersSides c, int i) {
-    switch (c) {
-        case N:
-            return static_cast<PlayersSides>(i);
-        case E:
-            return static_cast<PlayersSides>(i+1);
-        case S:
-            return static_cast<PlayersSides>(i+2);
-        case W:
-            return static_cast<PlayersSides>(i+3);
-        default: return None;
-    }
+    for(int i2=1;i2<=i;i2++)++c;
+    return c;
 }
 inline PlayersSides operator-(PlayersSides c, int i) {
-    switch (c) {
-        case N:
-            return static_cast<PlayersSides>(i);
-        case E:
-            return static_cast<PlayersSides>(i-1);
-        case S:
-            return static_cast<PlayersSides>(i-2);
-        case W:
-            return static_cast<PlayersSides>(i-3);
-        default: return None;
-    }
+    for(int i2=1;i2<=i;i2++)--c;
+    return c;
 }
 
 PlayersSides fromChar(char c);

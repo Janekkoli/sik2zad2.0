@@ -23,13 +23,14 @@ public:
         if(currentTrickNum==1 && currentTrick().isTrickNew()) return true;
         return false;
     }
-    Trick currentTrick() {
+    Trick& currentTrick() {
         return tricks[currentTrickNum];
     }
     bool playCard(const PlayersSides side, const Card card, const int trickNumber,   std::map<PlayersSides, int>& playersFd) {
         if(trickNumber != currentTrickNum) {std::cout<<"Worng tricknum\n";return false;} // check trick number
         if(!tricks[currentTrickNum].playCard(side, card)) {std::cout<<"trick error playcard\n";return false;}
         if(currentTrick().points()!=-1) { //trick is finished
+            std::cout<<"Trick finished :((";
             playersScore[currentTrick().getWinner()]+=currentTrick().points();
             for(PlayersSides s: {N,E,S,W}) {
                 currentTrick().sendTakenMess(playersFd[s]); // sending taken to all players
@@ -43,6 +44,7 @@ public:
                 tricks[currentTrickNum] = Trick(tricks[currentTrickNum-1].getWinner(), currentTrickNum, gameType);
             }
         }
+        std::cout<<"Current trick: "<<currentTrickNum<<"Current player: "<<currentTrick().currentPlayer<<"\n";
         return true;
     }
 
@@ -55,8 +57,8 @@ public:
     }
 
     void sendTrickMess(std::map<PlayersSides, int>  &playersFd) {
-        std::cout<<"Sending trick message: "<<tricks[currentTrickNum].currentPlayer<<" "<<currentTrick().cardsToString()<<"\n";
-        tricks[currentTrickNum].sendTrickMess(playersFd[currentTrick().currentPlayer]);
+        std::cout<<"Sending trick message: "<<currentTrick().currentPlayer<<" "<<currentTrick().cardsToString()<<"Current trick: "<<currentTrickNum<<"\n";
+        currentTrick().sendTrickMess(playersFd[currentTrick().currentPlayer]);
     }
 
     void setCards(PlayersSides side, std::string cards){
