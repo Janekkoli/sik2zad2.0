@@ -116,17 +116,19 @@ extern PlayersSides me;
 
 inline std::vector<Card> cardStringToArray2(const std::string& cardsString)
 {
+    //std::cout<<cardsString<<"set\n";
     std::string k;
     std::vector<Card> wyn;
     for(auto & c : cardsString){
         k+=c;
         if(c=='C' || c=='D' || c=='H' || c=='S'){
+            //std::cout<<k<<"\n";
             try{wyn.emplace_back(k);}
             catch(std::invalid_argument &e){ return {};}
             k = "";
         }
     }
-    return {};
+    return wyn;
 }
 
 

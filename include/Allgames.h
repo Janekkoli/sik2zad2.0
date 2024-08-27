@@ -28,7 +28,7 @@ public:
   void sendTrickMess() {
     for(PlayersSides s: {N,E,S,W})
       playersFd[s] = players[s].fd;
-    currentGame().sendTrickMess(&playersFd);
+    currentGame().sendTrickMess(playersFd);
   }
 
   void sendTotalMess() {
@@ -38,16 +38,17 @@ public:
   }
 
   void startNewGame() {
+    games.pop_front(); //go to next game
+
     for(PlayersSides s: {N,E,S,W}) {
       players[s].setCards(cardStringToArray2(currentGame().players_cards[s])); //setting cards for players
     }
-    games.pop_front(); //go to next game
   }
 
   bool playCard(const PlayersSides side, const Card card, const int trickNumber) {
-    if(!players[side].canPlayThisCard(card, currentGame().tricks[trickNumber].trickColor())) return false;
+    if(!players[side].canPlayThisCard(card, currentGame().tricks[trickNumber].trickColor())) {std::cout<<"pplayers.playcard wrong\n";return false;}
     //player has this card and color is alright
-    if(!currentGame().playCard(side, card, trickNumber, playersFd)) return false;
+    if(!currentGame().playCard(side, card, trickNumber, playersFd)) {std::cout<<"current game playcard error\n";return false;}
     if(currentGame().finished) { //game finished
       for(PlayersSides s: {N,E,S,W}) {
         players[s].receivePoints(currentGame().playersScore[s]);

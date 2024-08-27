@@ -74,14 +74,18 @@ private:
     std::string cardString;
     split_tricknum_rest(content, trickNumber, cardString);
     std::cout<<"Trick message received: "<<trickNumber<<" "<<cardString<<std::endl;
+    if(trickNumber>13 || trickNumber<1) return;
     Card card;
-    try{ card = Card(cardString);} catch(std::exception& e) {send_WRONG(connNumber, trickNumber);return;}
-    if(!all_games.playCard(side, card, trickNumber )) {send_WRONG(connNumber, trickNumber);return;}
+    try{ card = Card(cardString);} catch(std::exception& e) {std::cout<<"wrong card!!!\n";
+      send_WRONG(poll_descriptors[connNumber].fd, trickNumber);return;}
+    if(!all_games.playCard(side, card, trickNumber )) {std::cout<<"Cant play all_games.playcard()\n";
+      send_WRONG(poll_descriptors[connNumber].fd, trickNumber);return;
+    }
     //card was correctly played
     if(all_games.currentGame().finished) //new game is coming so i need to send score to players
     {
       all_games.sendTotalMess();
-      startNewGame();
+      startNewGame(); //here i start new game if game ends
     }
     sendTrickMess(); //so im sending message to next person
 

@@ -9,7 +9,7 @@ void Server::print() const {
 
 void Server::run() {
     createSocket();
-    if (listen(socket_fd, QUEUE_LENGTH) < 0) {
+    if (listen(socket_fd, QUEUE_LENGTH) < 0) {  //TODO is it really neccessary?
         syserr("listen");
     }
     poll_descriptors[0].fd = socket_fd;

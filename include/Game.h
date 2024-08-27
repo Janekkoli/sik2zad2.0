@@ -27,8 +27,8 @@ public:
         return tricks[currentTrickNum];
     }
     bool playCard(const PlayersSides side, const Card card, const int trickNumber,   std::map<PlayersSides, int>& playersFd) {
-        if(trickNumber != currentTrickNum) return false; // check trick number
-        if(!tricks[currentTrickNum].playCard(side, card)) return false;
+        if(trickNumber != currentTrickNum) {std::cout<<"Worng tricknum\n";return false;} // check trick number
+        if(!tricks[currentTrickNum].playCard(side, card)) {std::cout<<"trick error playcard\n";return false;}
         if(currentTrick().points()!=-1) { //trick is finished
             playersScore[currentTrick().getWinner()]+=currentTrick().points();
             for(PlayersSides s: {N,E,S,W}) {
@@ -54,8 +54,9 @@ public:
         send_DEAL(fd, gameType, firstPlayer,players_cards[side]);
     }
 
-    void sendTrickMess(std::map<PlayersSides, int>  *playersFd) {
-        tricks[currentTrickNum].sendTrickMess((*playersFd)[tricks[currentTrickNum].currentPlayer]);
+    void sendTrickMess(std::map<PlayersSides, int>  &playersFd) {
+        std::cout<<"Sending trick message: "<<tricks[currentTrickNum].currentPlayer<<" "<<currentTrick().cardsToString()<<"\n";
+        tricks[currentTrickNum].sendTrickMess(playersFd[currentTrick().currentPlayer]);
     }
 
     void setCards(PlayersSides side, std::string cards){

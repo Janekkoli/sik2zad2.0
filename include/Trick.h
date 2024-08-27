@@ -39,6 +39,7 @@ public:
         if(side!=currentPlayer)return false;
         cards[side] = card;
         ++currentPlayer;
+
         establishWinner();
         return true;
     }

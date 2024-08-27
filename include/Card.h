@@ -49,7 +49,7 @@ public:
   [[nodiscard]] bool isPlayed() const { return played; }
 
   bool operator==(const Card &rhs) const {
-    return color == rhs.color && value == rhs.value && played == rhs.played;
+    return color == rhs.color && value == rhs.value; //&& played == rhs.played;
   }
   void play() { played = true; }
 
