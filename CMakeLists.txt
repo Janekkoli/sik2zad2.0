@@ -42,6 +42,8 @@ add_library(Common
         include/common_f.h
         src/Server.cpp
         include/Server.h
+        include/Client.h
+        src/Client.cpp
 )
 
 # Dodanie pliku wykonywalnego kierki-klient

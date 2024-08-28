@@ -15,6 +15,7 @@
 
 
 //TODO what if message dont go to write player because disconnection :(
+//TODO close all connections properly !!!!
 struct connection {
   time_t connTime = 0;
   PlayersSides player = None;

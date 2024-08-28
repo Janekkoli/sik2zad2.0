@@ -11,10 +11,14 @@
 #include <fcntl.h>
 #include <poll.h>
 #include <netinet/in.h>
+#include "Client.h"
+
 void print_usage() {
     std::cout << "Usage: program -h <host> -p <port> [-4] [-6] [-N|-E|-S|-W] [-a]" << std::endl;
 }
 
+
+//TODO ipv6 not working !!!!
 int main(int argc, char *argv[]) {
     int opt;
     std::string host;
@@ -87,53 +91,16 @@ int main(int argc, char *argv[]) {
         std::cout << "IP Version: Unspecified (AF_UNSPEC)" << std::endl;
     }
 
+    auto client = Client(opt, host, port, ai_family, automatic_player, seat);
+    client.run();
+
     // conecting via tcp
-    int socket_fd = socket(ai_family, SOCK_STREAM, 0);
-    if (socket_fd < 0) {syserr("cannot create a socket");}
-    struct sockaddr_in server_address = get_server_address(host.c_str(), port);
-    if (connect(socket_fd, (struct sockaddr *) &server_address,
-                (socklen_t) sizeof(server_address)) < 0) {
-        syserr("cannot connect to the server");
-    }
-    fcntl(socket_fd, F_SETFL, O_NONBLOCK);
-    fcntl(STDIN_FILENO, F_SETFL, O_NONBLOCK);
+
     // start of the game
 
-    me = fromChar(seat);
-    send_IAM(socket_fd, &seat);
 
 
-    struct pollfd fds[2];
-    fds[0].fd = STDIN_FILENO;
-    fds[0].events = POLLIN;
-    fds[1].fd = socket_fd;
-    fds[1].events = POLLIN;
-    std::string message;
-    while (true) {
-        int ret = poll(fds, 2, -1);
-        if (ret < 0) {
-            syserr("poll");
-        }
-        if (fds[0].revents & POLLIN) {
-            message=readall(STDIN_FILENO);
-            Card c;
-            if(message=="cards\n"){std::cout<<"Twoje karty na reku: "<<all_games.players[me].cardsToString()<<"\n";}
-            else if(message=="tricks\n"){trics_print();}
-            else if(message[0]=='!'){
-                try{c  = Card(message.substr(1, message.size()-2));}
-                catch(std::invalid_argument &e){std::cout<<"Invalid card code\n";}
-                play_card(socket_fd, c);
-            }
-            else {std::cout<<"Invalid command\n";}
-        }
-        if (fds[1].revents & POLLIN) {
-            if((message=readall(socket_fd)).empty()) syserr("disconnected from server");
-            //split_and_execute(message, dealwith_TRICK);
-            //TODO dont know what is going on here
-        }
-    }
 
 
-    close(socket_fd);
     return EXIT_SUCCESS;
 }
