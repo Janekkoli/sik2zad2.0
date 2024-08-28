@@ -17,6 +17,7 @@
 #include <unistd.h>
 #include <vector>
 #define TRICK_NUMBER (13)
+#define DELIMITER "\r\n"
 
 class Card; //class card for functions definitions :)
 uint16_t read_port(char const *string);
@@ -59,6 +60,15 @@ inline std::ostream& operator<<(std::ostream& os, PlayersSides side) {
     return os;
 }
 
+inline char toChar(const PlayersSides& side) {
+    switch (side) {
+        case N: return 'N';
+        case E: return 'E';
+        case W: return 'W';
+        case S: return 'S';
+        default: return 'X';
+    }
+}
 
 inline PlayersSides operator++(PlayersSides &c) {
     switch (c) {
@@ -125,6 +135,5 @@ inline std::vector<Card> cardStringToArray2(const std::string& cardsString)
 
 
 
-void split_and_execute(std::string message, bool (*dealwith_TRICK) (std::string));
 void split_tricknum_rest(const std::string& content, int &trick_number, std::string &cards);
 #endif //ZAD2_SIK_COMMON_H

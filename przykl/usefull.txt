@@ -1,1 +1,4 @@
 ncat -l -p 2001 --crlf
+
+this caused adress baundary error :(( -         send_IAM(socket_fd, reinterpret_cast<const char *>(static_cast<char>(seat)));
+

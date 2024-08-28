@@ -25,8 +25,9 @@ public:
         return false;
     }
 
-    void sendTakenMess( int fd) {
-        send_TAKEN(fd, trickNumber, cardsToShortString().c_str(), reinterpret_cast<const char *>(winner));
+    void sendTakenMess(const int fd) {
+        char winStr = toChar(winner);
+        send_TAKEN(fd, trickNumber, cardsToShortString().c_str(),&winStr );
     }
 
     void establishWinner() {

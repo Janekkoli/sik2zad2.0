@@ -19,7 +19,6 @@
 #include "err.h"
 #include <iostream>
 #define BAD_DESCRIPTOR (-1)
-PlayersSides me;
 
 uint16_t read_port(char const *string) {
     char *endptr;
@@ -51,16 +50,16 @@ ssize_t readn(int fd, void *vptr, size_t n) {
     return n - nleft;         // return >= 0
 }
 
-std::string readall(int fd) {
+std::string readall(int fd) { //TODO maybe should wait until delimiter \n\r
     const size_t read_chunks = 128;
     char buffer[read_chunks];
     std::string result;
     ssize_t nread;
-    while ((nread = read(fd, buffer, read_chunks) )> 0) {
+    while ((nread = read(fd, buffer, read_chunks) ) > 0) {
         result+=std::string(buffer, nread);
     }
     if(nread < 0 && errno != EAGAIN){
-        syserr("readall"); //samething to do here
+        syserr("readall"); //TODO samething to do here
     }
     return result;
 }

@@ -11,7 +11,6 @@
 #define CONNECTIONS_MAX 130
 #define QUEUE_LENGTH 5 // what number?
 #define BUFFER_SIZE 1000
-#define DELIMITER "\r\n"
 
 
 //TODO what if message dont go to write player because disconnection :(
