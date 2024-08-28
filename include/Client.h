@@ -17,7 +17,10 @@ public:
     void run() {
         makeConnection();
         send_IAM(socket_fd, reinterpret_cast<const char *>(static_cast<char>(seat)));
-
+        if(automaticPlayer) { //if player is automatic everything is easier
+            automatic();
+            return;
+        }
         //making poll to be able to concurrently take messages from stdin and tcp connection
 
         fds[0].fd = STDIN_FILENO;
@@ -53,6 +56,10 @@ private:
     PlayersSides seat;
     int socket_fd = 0;
     pollfd fds[2];
+
+    void automatic() {
+        std::cout<<"running automatic player\n";
+    }
 
     void handleStdin(const std::string &message) {
         Card c;
