@@ -37,7 +37,7 @@ public:
         }
     }
 
-    bool playCard(PlayersSides side, Card card){
+    bool playCard(const PlayersSides side, const Card card){
         if(side!=currentPlayer)return false;
         cards[side] = card;
         ++currentPlayer;
@@ -49,7 +49,7 @@ public:
     [[nodiscard]] std::map<PlayersSides, Card> getCards() const {
         return cards;
     }
-    void setWinner(PlayersSides winner) {
+    void setWinner(const PlayersSides winner) {
         Trick::winner = winner;
     }
 
@@ -57,7 +57,7 @@ public:
         return cards[firstPlayer];
     }
 
-    void sendTrickMess(int fd) {
+    void sendTrickMess(const int fd) {
         send_TRICK(fd, trickNumber, cardsToShortString().c_str());
     }
 
@@ -136,7 +136,7 @@ public:
         return -1;
     }
 
-    bool addCard(Card card){
+    bool addCard(const Card card){
         //player has to play the same color as the first card if he has one
         //---
         cards[currentPlayer] = card;

@@ -16,7 +16,7 @@ public:
     Game( int game_type,PlayersSides first_player) : gameType(game_type) , firstPlayer(first_player){
         tricks[1] = Trick(first_player,1,gameType); //setting first trick
     }
-    void addTrick(Trick trick){
+    void addTrick(const Trick& trick){
         tricks[trick.getTrickNumber()]=trick;
     }
     bool isGameNew() { //true if no card was played in game yet
@@ -61,7 +61,7 @@ public:
         currentTrick().sendTrickMess(playersFd[currentTrick().currentPlayer]);
     }
 
-    void setCards(PlayersSides side, std::string cards){
+    void setCards(const PlayersSides side, const std::string &cards){
         players_cards[side]=cards;
     }
     void print(){
