@@ -137,12 +137,17 @@ public:
         return -1;
     }
 
-    bool addCard(const Card card){
+    void addCard(const Card card){
         //player has to play the same color as the first card if he has one
         //---
         cards[currentPlayer] = card;
         ++currentPlayer;
-        return true;
+    }
+    void addCards(const std::vector<Card>& cards) {
+        for(const Card c: cards) {
+            this->cards[currentPlayer]= c;
+            ++currentPlayer;
+        }
     }
 };
 

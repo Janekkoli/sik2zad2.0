@@ -8,13 +8,15 @@
 #include "Game.h"
 class Player {
 private:
-    std::vector<Card> cards;
+
     PlayersSides seat=N;
     int points=0;
 public:
+    std::vector<Card> cards;
     int fd = -1;
     Player(PlayersSides seat) : seat(seat){}
     Player()= default;
+
 
 
     void setCards(const std::vector<Card>& cards){

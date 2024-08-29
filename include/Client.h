@@ -24,16 +24,18 @@
 //TODO deal with server wrong messages
 class Client {
 public:
-
-    Client(const int opt, std::string host, const int port, const int ai_family, const bool automatic_player, const char seat): opt(opt),host(host), port(port), ai_family(ai_family), automaticPlayer(automatic_player) {
-      this->seat = fromChar(seat);
+    Client(const int opt, std::string host, const int port, const int ai_family, const bool automatic_player, const char seatChar): opt(opt), host(host),
+                port(port), ai_family(ai_family), automaticPlayer(automatic_player) {
+        this->seat = fromChar(seatChar);
+        player = all_games.players[this->seat];
     }
 
     void run() {
         makeConnection();
         char seatChar = toChar(seat);
         send_IAM(socket_fd, &seatChar);
-        if(automaticPlayer) { //if player is automatic everything is easier
+        if (automaticPlayer) {
+            //if player is automatic everything is easier
             automatic();
             close(socket_fd);
 
@@ -53,11 +55,11 @@ public:
                 syserr("poll");
             }
             if (fds[0].revents & POLLIN) {
-                message=readall(STDIN_FILENO);
+                message = readall(STDIN_FILENO);
                 handleStdin(message);
             }
             if (fds[1].revents & POLLIN) {
-                if((message=readall(socket_fd)).empty()) syserr("disconnected from server");
+                if ((message = readall(socket_fd)).empty()) syserr("disconnected from server");
                 split_and_execute(message);
                 //TODO dont know what is going on here
             }
@@ -66,6 +68,7 @@ public:
 
         close(socket_fd);
     }
+
 private:
     int opt;
     std::string host;
@@ -77,30 +80,32 @@ private:
     pollfd fds[2];
     int waiting_for_a_card = -1;
     All_Games all_games = All_Games();
-    void split_and_execute(std::string &message)
-    {
+    Player& player = all_games.players[N];
+
+    void split_and_execute(std::string &message) {
         std::string delimiter = DELIMITER;
         size_t pos = 0;
         std::string token;
         while ((pos = message.find(delimiter)) != std::string::npos) {
             token = message.substr(0, pos);
             message.erase(0, pos + delimiter.length());
-            if(token.substr(0, 5) == "TOTAL") dealwith_TOTAL(token.substr(5));
-            else if(token.substr(0, 5) == "SCORE") dealwith_SCORE(token.substr(5));
-            else if(token.substr(0, 5) == "TAKEN") dealwith_TAKEN(token.substr(5));
-            else if(token.substr(0, 5) == "WRONG") dealwith_WRONG(token.substr(5));
-            else if(token.substr(0, 5) == "TRICK") dealwith_TRICK(token.substr(5));
-            else if(token.substr(0, 4) == "DEAL") dealWith_DEAL(token.substr(4));
-            else if(token.substr(0, 4) == "BUSY") dealWith_BUSY(token.substr(4));
+            if (token.substr(0, 5) == "TOTAL") dealwith_TOTAL(token.substr(5));
+            else if (token.substr(0, 5) == "SCORE") dealwith_SCORE(token.substr(5));
+            else if (token.substr(0, 5) == "TAKEN") dealwith_TAKEN(token.substr(5));
+            else if (token.substr(0, 5) == "WRONG") dealwith_WRONG(token.substr(5));
+            else if (token.substr(0, 5) == "TRICK") dealwith_TRICK(token.substr(5));
+            else if (token.substr(0, 4) == "DEAL") dealWith_DEAL(token.substr(4));
+            else if (token.substr(0, 4) == "BUSY") dealWith_BUSY(token.substr(4));
             else continue;
         }
     }
 
-    void automatic() { //Automatic player will not handle stdin
-        std::cout<<"running automatic player\n";
+    void automatic() {
+        //Automatic player will not handle stdin
+        std::cout << "running automatic player XD\n";
         std::string message;
-        while(true) {
-            if((message=readall(socket_fd)).empty()) syserr("disconnected from server");
+        while (true) {
+            if ((message = readall(socket_fd)).empty()) syserr("disconnected from server");
             split_and_execute(message);
             // std::string delimiter = DELIMITER;
             // size_t pos = 0;
@@ -112,177 +117,187 @@ private:
             //     else continue;
             // }
         }
-        }
+    }
 
     void handleStdin(const std::string &message) {
         Card c;
 
-        if(message=="cards\n"){std::cout<<"Twoje karty na reku: "<<all_games.players[seat].cardsToString()<<"\n";}
-        else if(message=="tricks\n"){trics_print();}
-        else if(message[0]=='!'){
-            try{c  = Card(message.substr(1, message.size()-2));}
-            catch(std::invalid_argument &e){std::cout<<"Invalid card code\n";}
-            play_card(socket_fd, c);
-        }
-        else {std::cout<<"Invalid command\n";}
+        if (message == "cards\n") { std::cout << "Twoje karty na reku: " << all_games.players[seat].cardsToString() << "\n"; } else if (message == "tricks\n") { trics_print(); } else if (message[0] == '!') {
+            try { c = Card(message.substr(1, message.size() - 2)); } catch (std::invalid_argument &e) { std::cout << "Invalid card code\n"; }
+            play_card(c);
+        } else { std::cout << "Invalid command\n"; }
     }
 
     void makeConnection() {
         socket_fd = socket(ai_family, SOCK_STREAM, 0);
-        if (socket_fd < 0) {syserr("cannot create a socket");}
-        sockaddr_in server_address = get_server_address(host.c_str(), port);
-        if (connect(socket_fd, reinterpret_cast<sockaddr *>(&server_address),
-                     sizeof(server_address)) < 0) {
-            syserr("cannot connect to the server");}
-        fcntl(socket_fd, F_SETFL, O_NONBLOCK);
-        fcntl(STDIN_FILENO, F_SETFL, O_NONBLOCK);
+        if (socket_fd < 0) { syserr("cannot create a socket"); }
+        struct sockaddr_in server_address = get_server_address(host.c_str(), port);
+        if (connect(socket_fd, (struct sockaddr *)&server_address, (socklen_t)sizeof(server_address)) < 0) {
+            syserr("cannot connect to the server");
+        }
+        if(!automaticPlayer) {
+            fcntl(socket_fd, F_SETFL, O_NONBLOCK);
+            fcntl(STDIN_FILENO, F_SETFL, O_NONBLOCK);
+        }
     }
 
     sockaddr_in get_server_address(char const *host, const uint16_t port) {
-    addrinfo hints;
-    memset(&hints, 0, sizeof(addrinfo));
-    hints.ai_family = AF_INET; // IPv4
-    hints.ai_socktype = SOCK_STREAM;
-    hints.ai_protocol = IPPROTO_TCP;
+        addrinfo hints;
+        memset(&hints, 0, sizeof(addrinfo));
+        hints.ai_family = AF_INET; // IPv4
+        hints.ai_socktype = SOCK_STREAM;
+        hints.ai_protocol = IPPROTO_TCP;
 
-    addrinfo *address_result;
-    int errcode = getaddrinfo(host, NULL, &hints, &address_result);
-    if (errcode != 0) {
-        fatal("getaddrinfo: %s", gai_strerror(errcode));
+        addrinfo *address_result;
+        int errcode = getaddrinfo(host, NULL, &hints, &address_result);
+        if (errcode != 0) {
+            fatal("getaddrinfo: %s", gai_strerror(errcode));
+        }
+
+        sockaddr_in send_address;
+        send_address.sin_family = AF_INET; // IPv4
+        send_address.sin_addr.s_addr = // IP address
+                ((sockaddr_in *) (address_result->ai_addr))->sin_addr.s_addr;
+        send_address.sin_port = htons(port); // port from the command line
+
+        freeaddrinfo(address_result);
+
+        return send_address;
     }
 
-    sockaddr_in send_address;
-    send_address.sin_family = AF_INET;   // IPv4
-    send_address.sin_addr.s_addr =       // IP address
-            ((sockaddr_in *) (address_result->ai_addr))->sin_addr.s_addr;
-    send_address.sin_port = htons(port); // port from the command line
+    void trics_print() {
+        Game g = all_games.currentGame();
+        std::cout << "Tricks won by me: \n";
+        int n = 0;
+        for (int i = 0; i < 14; i++) {
+            if (g.tricks[i].getWinner() == seat) {
+                std::cout << "Trick number: " << i << ", cards " << g.tricks[i].cardsToString() << "\n";
+                n++;
+            }
+        }
+        if (n == 0)std::cout << "None :(\n";
+    }
 
-    freeaddrinfo(address_result);
-
-    return send_address;
-}
-
-void trics_print(){
-    Game g = all_games.currentGame();
-    std::cout<<"Tricks won by me: \n";
-    int n=0;
-    for(int i=0;i<14;i++)
+    void dealWith_BUSY(const std::string content) //save for automatic
     {
-        if(g.tricks[i].getWinner()==seat)
-        {std::cout<<"Trick number: "<<i<<", cards "<<g.tricks[i].cardsToString()<<"\n";n++;}
+        std::cout << "Place busy, list of busy places received: " << content << "\n";
     }
-    if(n==0)std::cout<<"None :(\n";
-}
 
-void dealWith_BUSY(const std::string content) //save for automatic
-{
-    std::cout << "Place busy, list of busy places received: " << content << "\n";
-}
+    void dealWith_DEAL(const std::string content) //safe with automatic player
+    {
+        int deal_type;
+        char firstSeatChar;
+        PlayersSides firstSeat;
+        char cardString[256];
+        if (sscanf(content.c_str(), "%d%c%s", &deal_type, &firstSeatChar, cardString) != 3) return;
 
-void dealWith_DEAL(const std::string content) //safe with automatic player
-{
-    int deal_type;
-    char firstSeatChar;
-    PlayersSides firstSeat;
-    char cardString[256];
-    if(sscanf(content.c_str(), "%d%c%s", &deal_type, &firstSeatChar, cardString) != 3) return;
+        std::vector<Card> karty;
+        karty = cardStringToArray2(cardString);
+        if (karty.size() != TRICK_NUMBER) return; //wrong deal was send
+        try { firstSeat = fromChar(firstSeatChar); } catch (std::invalid_argument &e) { return; }
+        if (deal_type > 7 || deal_type < 1) return;
+        all_games.AddNewGame(Game(deal_type, firstSeat));
+        all_games.players[seat].setCards(karty);
+        if (!automaticPlayer) { std::cout << "New deal " << deal_type << ": starting place " << firstSeatChar << ", your cards: " << cardString << ".\n"; }
+    }
 
-    std::vector<Card> karty;
-    karty =cardStringToArray2(cardString);
-    if(karty.size()!=TRICK_NUMBER) return; //wrong deal was send
-    try{firstSeat = fromChar(firstSeatChar);} catch (std::invalid_argument& e) {return;}
-    if(deal_type>7 || deal_type<1) return;
-    all_games.AddNewGame(Game(deal_type, firstSeat));
-    all_games.players[seat].setCards(karty);
-    if(!automaticPlayer) {   std::cout<< "New deal "<< deal_type <<": starting place "<< firstSeatChar <<", your cards: "<< cardString << ".\n";}
-}
+    void automaticPlayCard() {
+        Trick& trick = all_games.currentGame().currentTrick();
+        for(Card c: player.cards) {
+            if(player.canPlayThisCard(c, trick.trickColor())) {
+                std::cout<<"Automatic card chose: "<< trick.cardsToString()<< " i want to play: "<< c.toString()<< "\n";
+                play_card(c);
+            }
+        }
+    }
 
-void automaticDealwith_TRICK(const std::string content) {
+    bool dealwith_TRICK(const std::string content) {
         int trick_number;
-        std::string cardsString;
-        split_tricknum_rest(content, trick_number, cardsString);
-        std::vector<Card> cards = cardStringToArray2(cardsString);
-
-
+        std::string cardString;
+        split_tricknum_rest(content, trick_number, cardString);
+        if(!automaticPlayer) {
+            std::cout << "Trick: (" << trick_number << ") " << cardString << std::endl;
+            std::cout << "Available: " << all_games.players[seat].cardsToString() << std::endl;
+            std::cout << "Choose a card to play (write !<card code><enter> for example !2D<enter> : \n";
+        }
+        else
+        {std::cout<<"Automatic trick selection \n";}
+        waiting_for_a_card = trick_number;
+        std::vector<Card> cards = cardStringToArray2(cardString);
+        int n = cards.size();
+        Trick trick = Trick(seat - n, trick_number, all_games.currentGame().gameType);
+        trick.addCards(cards);
+        if(automaticPlayer) {
+            automaticPlayCard();
+        }
+        //all_games.currentGame()->addTrick()
+        return true;
     }
 
-bool dealwith_TRICK(const std::string content)
-{
-    int trick_number;
-    std::string cards;
-    split_tricknum_rest(content, trick_number, cards);
-    std::cout << "Trick: ("<<trick_number<< ") " << cards << std::endl;
-    std::cout << "Available: " << all_games.players[seat].cardsToString() << std::endl;
-    std::cout << "Choose a card to play (write !<card code><enter> for example !2D<enter> : \n";
-    waiting_for_a_card=trick_number;
-    Card karty[4]; //TODO use cardStringToArray2!!!
-    int n = cardStringToArray(cards, karty, 4);
-    Trick lewa(seat-n, trick_number, 0); //TODO has to add trick type here
-    for(int i=0; i<n; i++) lewa.addCard(karty[i]);
-    //all_games.currentGame()->addTrick()
-    return true;
-}
-bool dealwith_TAKEN(const std::string content) //safe for automatic
-{
-    if(automaticPlayer) return false;
-    int trick_number;
-    std::string cards;
-    char winner_seat;
-    // std::cout << "TAKEN " << content << "\n";
-    split_tricknum_rest(content, trick_number, cards);
-    winner_seat = content[content.size()-1];
-    cards=cards.substr(0, cards.size()-1);
-    std::cout<< "TAKEN " << trick_number << " " << cards << " " << winner_seat << std::endl;
-    Trick lewa(N, trick_number, 0 ); //TODO has to add trick type here
-    Card karty[4];
-    if(4!=cardStringToArray(cards, karty, 4)) return false;
-    for(auto i : karty) lewa.addCard(i);
-    lewa.setWinner(fromChar(winner_seat));
-    all_games.currentGame().addTrick(lewa);
-    std::cout<< "A trick " << trick_number << " is taken by " << winner_seat << ", cards " << lewa.cardsToString() << "\n";
-    return true;
-}
+    bool dealwith_TAKEN(const std::string content) //safe for automatic
+    {
+        if (automaticPlayer) return false;
+        int trick_number;
+        std::string cards;
+        char winner_seat;
+        // std::cout << "TAKEN " << content << "\n";
+        split_tricknum_rest(content, trick_number, cards);
+        winner_seat = content[content.size() - 1];
+        cards = cards.substr(0, cards.size() - 1);
+        std::cout << "TAKEN " << trick_number << " " << cards << " " << winner_seat << std::endl;
+        Trick lewa(N, trick_number, 0); //TODO has to add trick type here
+        Card karty[4];
+        if (4 != cardStringToArray(cards, karty, 4)) return false;
+        for (auto i: karty) lewa.addCard(i);
+        lewa.setWinner(fromChar(winner_seat));
+        all_games.currentGame().addTrick(lewa);
+        std::cout << "A trick " << trick_number << " is taken by " << winner_seat << ", cards " << lewa.cardsToString() << "\n";
+        return true;
+    }
 
-bool dealwith_WRONG(std::string content)
-{
-        if(automaticPlayer) return true; //TODO if this is best
-    int trick_number;
-    if(sscanf(content.c_str(), "%d", &trick_number) != 1) return false;
-    std::cout<< "Wrong message received in trick "<<trick_number<<".\n";
-    std::cout << "Try again trick: ("<<trick_number<< ") " << all_games.currentGame().tricks[trick_number].cardsToString() << std::endl;
-    all_games.players[seat].wrongCard(all_games.currentGame().tricks[trick_number].getCards()[seat]);
-    std::cout << "Available: " << all_games.players[seat].cardsToString() << std::endl;
-    std::cout << "Choose a card to play (write !<card code><enter> for example !2D<enter> : \n";
-    waiting_for_a_card=trick_number;
+    bool dealwith_WRONG(std::string content) {
+        if (automaticPlayer) return true; //TODO if this is best
+        int trick_number;
+        if (sscanf(content.c_str(), "%d", &trick_number) != 1) return false;
+        std::cout << "Wrong message received in trick " << trick_number << ".\n";
+        std::cout << "Try again trick: (" << trick_number << ") " << all_games.currentGame().tricks[trick_number].cardsToString() << std::endl;
+        all_games.players[seat].wrongCard(all_games.currentGame().tricks[trick_number].getCards()[seat]);
+        std::cout << "Available: " << all_games.players[seat].cardsToString() << std::endl;
+        std::cout << "Choose a card to play (write !<card code><enter> for example !2D<enter> : \n";
+        waiting_for_a_card = trick_number;
 
-    return true;
-}
+        return true;
+    }
 
-bool dealwith_SCORE(std::string content)
-{
-    if(automaticPlayer) return true;
-    int score1, score2, score3, score4;
-    if(sscanf(content.c_str(), "%d%d%d%d", &score1, &score2, &score3, &score4) != 4) return false;
-    std::cout << "SCORE " << score1 << " " << score2 << " " << score3 << " " << score4 << std::endl;
-    return true;
-}
+    bool dealwith_SCORE(std::string content) {
+        if (automaticPlayer) return true;
+        int score1, score2, score3, score4;
+        if (sscanf(content.c_str(), "%d%d%d%d", &score1, &score2, &score3, &score4) != 4) return false;
+        std::cout << "SCORE " << score1 << " " << score2 << " " << score3 << " " << score4 << std::endl;
+        return true;
+    }
 
-bool dealwith_TOTAL(std::string content)
-{
-    if(automaticPlayer) return true;
-    int score1, score2, score3, score4;
-    if(sscanf(content.c_str(), "%d%d%d%d", &score1, &score2, &score3, &score4) != 4) return false;
-    std::cout << "TOTAL " << score1 << " " << score2 << " " << score3 << " " << score4 << std::endl;
-    return true;
-}
+    bool dealwith_TOTAL(std::string content) {
+        if (automaticPlayer) return true;
+        int score1, score2, score3, score4;
+        if (sscanf(content.c_str(), "%d%d%d%d", &score1, &score2, &score3, &score4) != 4) return false;
+        std::cout << "TOTAL " << score1 << " " << score2 << " " << score3 << " " << score4 << std::endl;
+        return true;
+    }
 
 
-bool play_card(int socket_fd, Card card){
-    if(waiting_for_a_card==-1) {std::cout<<"Not waiting for a card\n"; return false;}
-    if(!all_games.players[seat].playCard(card)) {std::cout<<"You dont have this card\n"; return false;}
-    send_TRICK(socket_fd,waiting_for_a_card,card.toString().c_str());
-    waiting_for_a_card = -1;
-    return true;
-}
+    bool play_card(Card card) {
+        if (waiting_for_a_card == -1) {
+            std::cout << "Not waiting for a card\n";
+            return false;
+        }
+        if (!all_games.players[seat].playCard(card)) {
+            std::cout << "You dont have this card\n";
+            return false;
+        }
+        send_TRICK(socket_fd, waiting_for_a_card, card.toString().c_str());
+        waiting_for_a_card = -1;
+        return true;
+    }
 };
 #endif //CLIENT_H
