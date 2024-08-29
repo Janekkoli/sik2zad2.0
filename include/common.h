@@ -6,13 +6,10 @@
 #ifndef ZAD2_SIK_COMMON_H
 #define ZAD2_SIK_COMMON_H
 #include <string>
-#include <list>
 #include <cstddef>
 #include <iostream>
 #include <sys/types.h>
 #include <stdexcept>
-#include <map>
-#include "err.h"
 #include "Card.h"
 #include <unistd.h>
 #include <vector>
@@ -30,7 +27,7 @@ ssize_t	writen(int fd, const void *vptr, size_t n);
 std::string readall(int fd);
 int send_IAM(int fd, const char *seat);
 
-int send_BUSY(int fd, const char *busy_seats);
+int send_BUSY(int fd, const std::string& busy_seats);
 
 int send_DEAL(int fd, int deal_type, char first_seat, const std::string &cards);
 

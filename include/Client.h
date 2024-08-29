@@ -5,18 +5,16 @@
 #include <bits/socket.h>
 #include <sys/types.h>
 #include <sys/socket.h>
-#include <errno.h>
-#include <inttypes.h>
-#include <limits.h>
+#include <cinttypes>
 #include <netdb.h>
-#include <stddef.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstddef>
+#include <cstdio>
+#include <cstring>
 #include <unistd.h>
-#include <signal.h>
+#include <csignal>
 #include "Allgames.h"
 #include "common.h"
+#include "err.h"
 #ifndef CLIENT_H
 #define CLIENT_H
 
@@ -95,8 +93,9 @@ private:
             else if (token.substr(0, 5) == "TRICK") dealwith_TRICK(token.substr(5));
             else if (token.substr(0, 4) == "DEAL") dealWith_DEAL(token.substr(4));
             else if (token.substr(0, 4) == "BUSY") dealWith_BUSY(token.substr(4));
-            else continue;
+            //std::cout<<"NOwertogo\n";
         }
+        //std::cout<<"Xdddtu\n";
     }
 
     void automatic() {
@@ -122,7 +121,7 @@ private:
 
     void handleDisconnect() {
         if(all_games.currentGame().currentTrickNum == 13 && all_games.currentGame().currentTrick().points()!=-1)
-            exit(EXIT_SUCCESS);
+        {close(socket_fd);exit(EXIT_SUCCESS);}
         syserr("disconnected from server");
     }
 
@@ -189,6 +188,7 @@ private:
     void dealWith_BUSY(const std::string content) //save for automatic
     {
         std::cout << "Place busy, list of busy places received: " << content << "\n";
+        exit(EXIT_SUCCESS); //TODO NOt sure
     }
 
     void dealWith_DEAL(const std::string content) //safe with automatic player

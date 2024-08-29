@@ -9,7 +9,6 @@
 #include <sys/socket.h>
 #include <fcntl.h>
 #include <poll.h>
-#include <netinet/in.h>
 #include "Client.h"
 
 void print_usage() {

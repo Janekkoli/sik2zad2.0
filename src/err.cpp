@@ -3,7 +3,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdnoreturn.h>
 #include "err.h"
 
 [[noreturn]] void syserr(const char* fmt, ...) {

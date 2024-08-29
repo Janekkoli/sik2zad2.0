@@ -1,6 +1,7 @@
 #include "Server.h"
 #include <chrono>
 #include <iostream>
+#include "err.h"
 void Server::print() const {
     std::cout << "Port: " << port << std::endl;
     std::cout << "File: " << fileName << std::endl;
@@ -52,7 +53,7 @@ void Server::run() {
 
                 ssize_t received_bytes =
                         read(poll_descriptors[i].fd, buffer, BUFFER_SIZE);
-
+                //TODO add here function that gives back whole line
                 if (received_bytes < 0) {
                     error("error when reading message from connection %d", i);
                     closeConnection(i);
@@ -84,6 +85,9 @@ void Server::handleNewConnection() {
     struct sockaddr_in client_address{};
     socklen_t sizeAdr = sizeof(client_address);
     const int client_fd = accept(poll_descriptors[0].fd, reinterpret_cast<struct sockaddr *>(&client_address), &sizeAdr);
+    char const *client_ip = inet_ntoa(client_address.sin_addr);
+    uint16_t client_port = ntohs(client_address.sin_port);
+    //printf("accepted connection from %s:%" PRIu16 "\n", client_ip, client_port);
     if (client_fd < 0) {
         syserr("accept");
     }
@@ -97,6 +101,8 @@ void Server::handleNewConnection() {
             poll_descriptors[i].events = POLLIN;
             connectionsDesc[i].connTime = currentTime();
             connectionsDesc[i].player = None; // no player yet
+            connectionsDesc[i].client_ip=client_ip; //setting client ip
+            connectionsDesc[i].client_port=client_port; //setting client port
             accepted = true;
             break;
         }
@@ -105,8 +111,6 @@ void Server::handleNewConnection() {
         close(client_fd);
         printf("too many clients\n");
     } else {
-        char const *client_ip = inet_ntoa(client_address.sin_addr);
-        const uint16_t client_port = ntohs(client_address.sin_port);
         printf("accepted connection from %s:%" PRIu16 "\n", client_ip,
                client_port);
     }
@@ -123,7 +127,6 @@ void Server::createSocket() {
     server_address.sin_addr.s_addr =
             htonl(INADDR_ANY); // Listening on all interfaces.
     server_address.sin_port = htons(port);
-
     if (bind(socket_fd, reinterpret_cast<struct sockaddr *>(&server_address),
              (socklen_t)sizeof server_address) < 0) {
         syserr("bind");
@@ -141,7 +144,7 @@ void Server::readPlayFile() {
         all_games.addGame(Game((int)(line[0] - '0'), fromChar(line[1])));
         for (const PlayersSides side : {N, E, S, W}) {
             std::getline(file, line);
-            all_games.lastGame()->setCards(side, line);
+            all_games.lastGame().setCards(side, line);
         }
     }
 
@@ -152,8 +155,7 @@ long Server::currentTime() {
     const auto now = std::chrono::system_clock::now();
     const auto duration = now.time_since_epoch();
     const long milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(
-                duration)
-            .count();
+                duration).count();
     return milliseconds;
 }
 
@@ -177,7 +179,7 @@ void Server::dealwith_IAM(int connNumber, std::string content) {
         for(PlayersSides s: {N,E,S,W}) {
             if(playersConnectionsNumbers[s]!=0) busySeats+=static_cast<char>(s);
         }
-        send_BUSY(poll_descriptors[connNumber].fd, busySeats.c_str());
+        send_BUSY(poll_descriptors[connNumber].fd, busySeats);
         closeConnection(connNumber);
         return;
     }

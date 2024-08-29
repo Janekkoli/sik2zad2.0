@@ -68,10 +68,8 @@ public:
     //there must be some current game if no game is finished
     return games.front();
   }
-  Game *lastGame() {
-    if (games.empty())
-      return nullptr;
-    return &games.back();
+  Game& lastGame() {
+    return games.back();
   }
 };
 extern All_Games all_games;

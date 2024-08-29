@@ -7,16 +7,14 @@
 #include <bits/stdc++.h>
 #include "Card.h"
 class Trick {
-private:
-    PlayersSides firstPlayer;
+    PlayersSides firstPlayer = None;
     int trickNumber = -1;
     PlayersSides winner = N;
-    int trickType;
-
+    int trickType = -1;
 public:
     std::map<PlayersSides,Card> cards;
 
-    PlayersSides currentPlayer;
+    PlayersSides currentPlayer = None;
 
     Trick(PlayersSides first_player, int trickNumber, int trickType) : firstPlayer(first_player), trickNumber(trickNumber), trickType(trickType)
     {currentPlayer = first_player;winner=firstPlayer;}

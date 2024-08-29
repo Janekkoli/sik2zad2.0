@@ -19,6 +19,8 @@ struct connection {
   time_t connTime = 0;
   PlayersSides player = None;
   bool isDealSend = false;
+  char const *client_ip;
+  uint16_t client_port;
 };
 class Server {
 public:
@@ -85,7 +87,7 @@ private:
     if(all_games.currentGame().finished) //new game is coming so i need to send total scores to players
     {
       all_games.sendTotalMess();
-      if(all_games.games.size()==1) exit(EXIT_SUCCESS);
+      if(all_games.games.size()==1) {finish = true; return;}
       startNewGame(); //here i start new game if game ends
     }
     else {

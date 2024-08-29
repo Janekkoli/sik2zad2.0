@@ -7,15 +7,12 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <cerrno>
-#include <inttypes.h>
-#include <limits.h>
 #include <netdb.h>
-#include <stddef.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstddef>
+#include <cstdio>
+#include <cstring>
 #include <unistd.h>
-#include <signal.h>
+#include <csignal>
 #include "err.h"
 #include <iostream>
 #define BAD_DESCRIPTOR (-1)
@@ -133,11 +130,11 @@ int send_DEAL(int fd, int deal_type, const char first_seat, const std::string &c
     return writen(fd, buffer, strlen(buffer));
 }
 
-int send_BUSY(int fd, const char *busy_seats) {
+int send_BUSY(int fd, const std::string &busy_seats) {
     if(fd<1) return BAD_DESCRIPTOR;
-    char buffer[64];
-    snprintf(buffer, strlen(busy_seats)+6, "BUSY%s\r\n", busy_seats);
-    return writen(fd, buffer, strlen(busy_seats)+6);
+    char buffer[MAX_MESSAGE_SIZE];
+    snprintf(buffer, MAX_MESSAGE_SIZE, "BUSY%s\r\n", busy_seats.c_str());
+    return writen(fd, buffer, strlen(buffer));
 }
 
 PlayersSides fromChar(char c) {

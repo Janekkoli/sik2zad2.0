@@ -4,7 +4,6 @@
 #pragma once
 #ifndef ZAD2_SIK_PLAYER_H
 #define ZAD2_SIK_PLAYER_H
-#include <bits/stdc++.h>
 #include "Game.h"
 class Player {
 private:
