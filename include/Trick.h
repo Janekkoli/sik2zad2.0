@@ -8,16 +8,18 @@
 #include "Card.h"
 class Trick {
 private:
-    std::map<PlayersSides,Card> cards;
     PlayersSides firstPlayer;
     int trickNumber = -1;
-    PlayersSides winner;
+    PlayersSides winner = N;
     int trickType;
 
 public:
+    std::map<PlayersSides,Card> cards;
+
     PlayersSides currentPlayer;
 
-    Trick(PlayersSides first_player, int trickNumber, int trickType) : firstPlayer(first_player), trickNumber(trickNumber), trickType(trickType) {currentPlayer = first_player;winner=firstPlayer;}
+    Trick(PlayersSides first_player, int trickNumber, int trickType) : firstPlayer(first_player), trickNumber(trickNumber), trickType(trickType)
+    {currentPlayer = first_player;winner=firstPlayer;}
     Trick()= default;
 
     bool isTrickNew() { //true is no card was played in trick yet
@@ -31,27 +33,28 @@ public:
     }
 
     void establishWinner() {
-        char trickColor = cards[firstPlayer].getColor();
         for(PlayersSides s: {N,E,S,W}){
-            if(cards[s].getColor() == trickColor && cards[s].getValue() > cards[winner].getValue())
+            if(cards[s].getColor() == trickColor() && cards[s].getValue() > cards[winner].getValue())
                 winner = s;
         }
     }
 
-    bool playCard(const PlayersSides side, const Card card){
+    bool playCard(const PlayersSides side, const Card& card){
+        //std::cout<<"Playing card: "<<card.toString()<<" in trick "<<trickNumber<<" by player "<<side<<" "<<cardsToString()<<" current player"<< currentPlayer<<"\n";
         if(side!=currentPlayer)return false;
         cards[side] = card;
         ++currentPlayer;
-        std::cout<<"Current player: "<<currentPlayer<<"\n";
-        establishWinner();
+        //std::cout<<"Current player: "<<currentPlayer<<"\n";
+        if(currentPlayer==firstPlayer)
+            establishWinner();
         return true;
     }
 
-    [[nodiscard]] std::map<PlayersSides, Card> getCards() const {
+    std::map<PlayersSides, Card>& getCards() {
         return cards;
     }
     void setWinner(const PlayersSides winner) {
-        Trick::winner = winner;
+        this->winner = winner;
     }
 
     Card& getFirstCardPlayed(){
@@ -62,7 +65,7 @@ public:
         send_TRICK(fd, trickNumber, cardsToShortString().c_str());
     }
 
-    [[nodiscard]] PlayersSides getWinner() const {
+    PlayersSides& getWinner() {
         return winner;
     }
     std::string cardsToString(){
@@ -89,14 +92,14 @@ public:
         return trickNumber;
     }
 
-    char trickColor() { // 0 if no card was assign
+    char trickColor() { // 0 if no card was assigned
         return cards[firstPlayer].getColor();
     }
     int points() {
         return points(trickType);
     }
     int points(int t){
-        if(currentPlayer+1 != firstPlayer) return -1; //trick is not finished
+        if(currentPlayer != firstPlayer) return -1; //trick is not finished
         /*1 - nie brać lew, za każdą wziętą lewę dostaje się 1 punkt;
         2 - nie brać kierów, za każdego wziętego kiera dostaje się 1 punkt;
         3 -nie brać dam, za każdą wziętą damę dostaje się 5 punktów;
@@ -148,6 +151,11 @@ public:
             this->cards[currentPlayer]= c;
             ++currentPlayer;
         }
+    }
+
+    void print() {
+        std::cout<<"Trick number: "<<trickNumber<<" Trick type: "<<trickType<<" First player: "<<firstPlayer<<" Winner: "<<winner<<" Current player: "<<currentPlayer<<"\n";
+        std::cout<<"Cards: "<<cardsToString()<<"\n";
     }
 };
 

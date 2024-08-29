@@ -18,6 +18,10 @@
 #include <vector>
 #define TRICK_NUMBER (13)
 #define DELIMITER "\r\n"
+#define BUFFER_SIZE_READALL (128)
+#define DEBUG_COUT(X) if(DEBUG_ON){std::cout<<X;}
+#define DEBUG_ON true
+//TODO read whole line not just what comes use /r/n as separator
 
 class Card; //class card for functions definitions :)
 uint16_t read_port(char const *string);
@@ -41,6 +45,15 @@ int send_SCORE(int fd, int score1, int score2, int score3, int score4);
 int send_TOTAL(int fd, int score1, int score2, int score3, int score4);
 
 enum PlayersSides {N='N', E='E', S='S', W='W', None = 'X'};
+
+inline std::string readallBlocking(int fd) {
+    char buffer[BUFFER_SIZE_READALL];
+    std::string results;
+    int n = 0;
+    n = read(fd, buffer, BUFFER_SIZE_READALL);
+    results += std::string(buffer,n);
+    return results;
+}
 
 // inline bool operator==(PlayersSides &lhs, PlayersSides &rhs) {
 //     return static_cast<char>(lhs) == static_cast<char>(rhs);

@@ -15,6 +15,8 @@ public:
     std::map<PlayersSides, int> playersScore;
     Game( int game_type,PlayersSides first_player) : gameType(game_type) , firstPlayer(first_player){
         tricks[1] = Trick(first_player,1,gameType); //setting first trick
+        tricks[0] = Trick(firstPlayer,0,gameType);
+        tricks[0].setWinner(firstPlayer); //this is like first player win trick number 0
     }
     void addTrick(const Trick& trick){
         tricks[trick.getTrickNumber()]=trick;
@@ -30,7 +32,7 @@ public:
         if(trickNumber != currentTrickNum) {std::cout<<"Worng tricknum\n";return false;} // check trick number
         if(!tricks[currentTrickNum].playCard(side, card)) {std::cout<<"trick error playcard\n";return false;}
         if(currentTrick().points()!=-1) { //trick is finished
-            std::cout<<"Trick finished :((";
+            //std::cout<<"Trick finished :((";
             playersScore[currentTrick().getWinner()]+=currentTrick().points();
             for(PlayersSides s: {N,E,S,W}) {
                 currentTrick().sendTakenMess(playersFd[s]); // sending taken to all players
@@ -44,20 +46,20 @@ public:
                 tricks[currentTrickNum] = Trick(tricks[currentTrickNum-1].getWinner(), currentTrickNum, gameType);
             }
         }
-        std::cout<<"Current trick: "<<currentTrickNum<<"Current player: "<<currentTrick().currentPlayer<<"\n";
+        //std::cout<<"Current trick: "<<currentTrickNum<<"Current player: "<<currentTrick().currentPlayer<<"\n";
         return true;
     }
 
 
     void sendDealMess(const PlayersSides side, const int fd) { //adding newely connected player and sending him his info
-        for(int i = 1 ;i<currentTrickNum;i++) { // send trick info to player if needed
-            tricks[i].sendTrickMess(fd);
-        }
         send_DEAL(fd, gameType, firstPlayer,players_cards[side]);
+        for(int i = 1 ;i<currentTrickNum;i++) { // send trick info to player if needed
+            tricks[i].sendTakenMess(fd);
+        }
     }
 
     void sendTrickMess(std::map<PlayersSides, int>  &playersFd) {
-        std::cout<<"Sending trick message: "<<currentTrick().currentPlayer<<" "<<currentTrick().cardsToString()<<"Current trick: "<<currentTrickNum<<"\n";
+        //std::cout<<"Sending trick message: "<<currentTrick().currentPlayer<<" "<<currentTrick().cardsToString()<<"Current trick: "<<currentTrickNum<<"\n";
         currentTrick().sendTrickMess(playersFd[currentTrick().currentPlayer]);
     }
 

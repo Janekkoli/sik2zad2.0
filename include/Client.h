@@ -17,18 +17,17 @@
 #include <signal.h>
 #include "Allgames.h"
 #include "common.h"
-#include "klient_f.h"
 #ifndef CLIENT_H
 #define CLIENT_H
 
 //TODO deal with server wrong messages
+//TODO Wszystkie listy w komunikatach dla użytkownika są wypisywane rozdzielone przecinkami i spacjami.
+//TODO what is automatic client recconcets has to ack taken
 class Client {
 public:
     Client(const int opt, std::string host, const int port, const int ai_family, const bool automatic_player, const char seatChar): opt(opt), host(host),
                 port(port), ai_family(ai_family), automaticPlayer(automatic_player) {
-        this->seat = fromChar(seatChar);
-        player = all_games.players[this->seat];
-    }
+        this->seat = fromChar(seatChar);}
 
     void run() {
         makeConnection();
@@ -80,9 +79,9 @@ private:
     pollfd fds[2];
     int waiting_for_a_card = -1;
     All_Games all_games = All_Games();
-    Player& player = all_games.players[N];
 
     void split_and_execute(std::string &message) {
+        //std::cout<<"MESSAGE RECIVED: "<<message<<"\n";
         std::string delimiter = DELIMITER;
         size_t pos = 0;
         std::string token;
@@ -102,10 +101,12 @@ private:
 
     void automatic() {
         //Automatic player will not handle stdin
-        std::cout << "running automatic player XD\n";
+        //std::cout << "running automatic player XD\n";
         std::string message;
         while (true) {
-            if ((message = readall(socket_fd)).empty()) syserr("disconnected from server");
+            //std::cout<<"start\n";
+            if ((message = readallBlocking(socket_fd)).empty()) handleDisconnect();
+            //std::cout<<message<<"\n";
             split_and_execute(message);
             // std::string delimiter = DELIMITER;
             // size_t pos = 0;
@@ -119,10 +120,17 @@ private:
         }
     }
 
+    void handleDisconnect() {
+        if(all_games.currentGame().currentTrickNum == 13 && all_games.currentGame().currentTrick().points()!=-1)
+            exit(EXIT_SUCCESS);
+        syserr("disconnected from server");
+    }
+
     void handleStdin(const std::string &message) {
         Card c;
 
-        if (message == "cards\n") { std::cout << "Twoje karty na reku: " << all_games.players[seat].cardsToString() << "\n"; } else if (message == "tricks\n") { trics_print(); } else if (message[0] == '!') {
+        if (message == "cards\n") { std::cout << "Twoje karty na reku: " << all_games.players[seat].cardsToString() << "\n"; }
+        else if (message == "tricks\n") { trics_print(); } else if (message[0] == '!') {
             try { c = Card(message.substr(1, message.size() - 2)); } catch (std::invalid_argument &e) { std::cout << "Invalid card code\n"; }
             play_card(c);
         } else { std::cout << "Invalid command\n"; }
@@ -166,11 +174,11 @@ private:
     }
 
     void trics_print() {
-        Game g = all_games.currentGame();
+        Game &g = all_games.currentGame();
         std::cout << "Tricks won by me: \n";
         int n = 0;
-        for (int i = 0; i < 14; i++) {
-            if (g.tricks[i].getWinner() == seat) {
+        for (int i = 1; i < 14; i++) {
+            if (g.tricks[i].getWinner() == seat && g.tricks[i].points()!=-1) {
                 std::cout << "Trick number: " << i << ", cards " << g.tricks[i].cardsToString() << "\n";
                 n++;
             }
@@ -196,17 +204,21 @@ private:
         if (karty.size() != TRICK_NUMBER) return; //wrong deal was send
         try { firstSeat = fromChar(firstSeatChar); } catch (std::invalid_argument &e) { return; }
         if (deal_type > 7 || deal_type < 1) return;
+        all_games.games.pop_front(); //has to pop last game
         all_games.AddNewGame(Game(deal_type, firstSeat));
+        //all_games.startNewGame();
         all_games.players[seat].setCards(karty);
-        if (!automaticPlayer) { std::cout << "New deal " << deal_type << ": starting place " << firstSeatChar << ", your cards: " << cardString << ".\n"; }
+        if (!automaticPlayer) { std::cout << "New deal " << deal_type << ": starting place " << firstSeatChar << ", your cards: " << all_games.players[seat].cardsToString() << ".\n"; }
     }
 
     void automaticPlayCard() {
         Trick& trick = all_games.currentGame().currentTrick();
-        for(Card c: player.cards) {
-            if(player.canPlayThisCard(c, trick.trickColor())) {
-                std::cout<<"Automatic card chose: "<< trick.cardsToString()<< " i want to play: "<< c.toString()<< "\n";
+        for(Card c: all_games.players[seat].cards) {
+            //std::cout<<"card: "<<c.toString()<<"\n";
+            if(all_games.players[seat].canPlayThisCard(c, trick.trickColor())) {
+                //std::cout<<"Automatic card chose: "<< trick.cardsToString()<< " i want to play: "<< c.toString()<< "\n";
                 play_card(c);
+                break;
             }
         }
     }
@@ -215,19 +227,19 @@ private:
         int trick_number;
         std::string cardString;
         split_tricknum_rest(content, trick_number, cardString);
-        if(!automaticPlayer) {
-            std::cout << "Trick: (" << trick_number << ") " << cardString << std::endl;
-            std::cout << "Available: " << all_games.players[seat].cardsToString() << std::endl;
-            std::cout << "Choose a card to play (write !<card code><enter> for example !2D<enter> : \n";
-        }
-        else
-        {std::cout<<"Automatic trick selection \n";}
+        //else
+        //{std::cout<<"Automatic trick selection XD \n";}
         waiting_for_a_card = trick_number;
         std::vector<Card> cards = cardStringToArray2(cardString);
         int n = cards.size();
         Trick trick = Trick(seat - n, trick_number, all_games.currentGame().gameType);
         trick.addCards(cards);
-        if(automaticPlayer) {
+        if(!automaticPlayer) {
+            std::cout << "Trick: (" << trick_number << ") " << trick.cardsToString() << std::endl;
+            std::cout << "Available: " << all_games.players[seat].cardsToString() << std::endl;
+            std::cout << "Choose a card to play (write !<card code><enter> for example !2D<enter> : \n";
+        }
+        else{
             automaticPlayCard();
         }
         //all_games.currentGame()->addTrick()
@@ -236,28 +248,36 @@ private:
 
     bool dealwith_TAKEN(const std::string content) //safe for automatic
     {
-        if (automaticPlayer) return false;
         int trick_number;
-        std::string cards;
+        std::string cardString;
         char winner_seat;
         // std::cout << "TAKEN " << content << "\n";
-        split_tricknum_rest(content, trick_number, cards);
+        split_tricknum_rest(content, trick_number, cardString);
         winner_seat = content[content.size() - 1];
-        cards = cards.substr(0, cards.size() - 1);
-        std::cout << "TAKEN " << trick_number << " " << cards << " " << winner_seat << std::endl;
-        Trick lewa(N, trick_number, 0); //TODO has to add trick type here
-        Card karty[4];
-        if (4 != cardStringToArray(cards, karty, 4)) return false;
-        for (auto i: karty) lewa.addCard(i);
-        lewa.setWinner(fromChar(winner_seat));
-        all_games.currentGame().addTrick(lewa);
-        std::cout << "A trick " << trick_number << " is taken by " << winner_seat << ", cards " << lewa.cardsToString() << "\n";
+        cardString = cardString.substr(0, cardString.size() - 1);
+        //DEBUG_COUT( "TAKEN " << trick_number << " " << cardString << " " << winner_seat << std::endl)
+        Trick trick = Trick(all_games.currentGame().tricks[trick_number-1].getWinner(), trick_number, all_games.currentGame().gameType); //trick first player is winner of last trick
+        std::vector<Card> cards = cardStringToArray2(cardString);
+        if(cards.size()!=4) return false; //wrong taken message
+        //std::cout<<"dealwithTaken: ";
+        //for(Card c:cards) {
+        //    std::cout<<c.toString()<<" ";
+        //}
+        //std::cout<<cardString<<"\n";
+        trick.addCards(cards);
+        //trick.print();
+        //TODO trick is 2S2S2S2S !!!!!
+        trick.setWinner(fromChar(winner_seat));
+        all_games.currentGame().tricks[trick_number] = trick;
+        if(!automaticPlayer) std::cout << "A trick " << trick_number << " is taken by " << winner_seat << ", cards " << trick.cardsToString() << "\n";
+        all_games.players[seat].playCard(trick.cards[seat]); //makes sure that card is played
+        all_games.currentGame().currentTrickNum = trick_number;
         return true;
     }
 
     bool dealwith_WRONG(std::string content) {
-        if (automaticPlayer) return true; //TODO if this is best
-        int trick_number;
+        if (automaticPlayer) {std::cout<<"Wrong card played very bad :(\n";return true;} //TODO if this is best
+        int trick_number; //TODO has to add card to player samehow
         if (sscanf(content.c_str(), "%d", &trick_number) != 1) return false;
         std::cout << "Wrong message received in trick " << trick_number << ".\n";
         std::cout << "Try again trick: (" << trick_number << ") " << all_games.currentGame().tricks[trick_number].cardsToString() << std::endl;
@@ -272,16 +292,26 @@ private:
     bool dealwith_SCORE(std::string content) {
         if (automaticPlayer) return true;
         int score1, score2, score3, score4;
-        if (sscanf(content.c_str(), "%d%d%d%d", &score1, &score2, &score3, &score4) != 4) return false;
-        std::cout << "SCORE " << score1 << " " << score2 << " " << score3 << " " << score4 << std::endl;
+        char place1, place2, place3, place4;
+        sscanf(content.c_str(), "%c%d%c%d%c%d%c%d",&place1, &score1,&place2, &score2,&place3, &score3,&place4, &score4);
+        std::cout<<"The scores are:\n";
+        std::cout<<place1<<" | "<<score1<<"\n";
+        std::cout<<place2<<" | "<<score2<<"\n";
+        std::cout<<place3<<" | "<<score3<<"\n";
+        std::cout<<place4<<" | "<<score4<<"\n";
         return true;
     }
 
     bool dealwith_TOTAL(std::string content) {
         if (automaticPlayer) return true;
         int score1, score2, score3, score4;
-        if (sscanf(content.c_str(), "%d%d%d%d", &score1, &score2, &score3, &score4) != 4) return false;
-        std::cout << "TOTAL " << score1 << " " << score2 << " " << score3 << " " << score4 << std::endl;
+        char place1, place2, place3, place4;
+        sscanf(content.c_str(), "%c%d%c%d%c%d%c%d",&place1, &score1,&place2, &score2,&place3, &score3,&place4, &score4);
+        std::cout<<"The total scores are:\n";
+        std::cout<<place1<<" | "<<score1<<"\n";
+        std::cout<<place2<<" | "<<score2<<"\n";
+        std::cout<<place3<<" | "<<score3<<"\n";
+        std::cout<<place4<<" | "<<score4<<"\n";
         return true;
     }
 

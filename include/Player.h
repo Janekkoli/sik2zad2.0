@@ -20,7 +20,7 @@ public:
 
 
     void setCards(const std::vector<Card>& cards){
-        std::cout<<"setting cards: "<<cards.size()<<"\n";
+        //std::cout<<"setting cards: "<<cards.size()<<"\n";
         this->cards=cards;
     }
 
@@ -28,7 +28,7 @@ public:
         return points;
     }
     bool canPlayThisCard(const Card card, const char trickColor) {
-        std::cout<<cardsToString()<<" | "<<card.toString()<<" | "<<trickColor<<"\n";
+        //std::cout<<cardsToString()<<" | "<<card.toString()<<" | "<<trickColor<<"\n";
         if(card.getColor() != trickColor && trickColor!=0)
             for(Card c: cards)
                 if(c.getColor() == trickColor)
@@ -41,25 +41,12 @@ public:
 
     //old design
     bool playCard(Card card){
-        //TODO has to add deleting card
-        for(int i=0; i<13; i++){
-            if(cards[i]==card){
-                cards[i].play();
-                break;
-            }
-            if(i==12)return false;
-        }
-        return true;
+        auto it = std::remove(cards.begin(), cards.end(), card);
+        cards.erase(it, cards.end());
+        return true; //TODO is it not a problem
     }
-    bool wrongCard(Card card){ //player cant play this card
-        for(int i=0; i<13; i++){
-            if(cards[i]==card){
-                cards[i].wrong();
-                break;
-            }
-            if(i==12)return false;
-        }
-        return true;
+    void wrongCard(Card card){ //puts card back because server  it
+        cards.push_back(card);
     }
 
     int numberOfCards(char color){
@@ -76,9 +63,9 @@ public:
     std::string cardsToString(){
         std::string s;
         if(cards.empty())return "no cards";
-        for(int i=0;i<13;i++){
-            if(cards[i].isPlayed())continue;
-            s+=cards[i].toString() + " ";
+        for(auto card : cards){
+            //if(cards[i].isPlayed())continue;
+            s+=card.toString() + " ";
         }
         return s;
     }

@@ -7,7 +7,6 @@
 #include <cstdlib>
 #include <cstring>
 #include <sys/socket.h>
-#include "klient_f.h"
 #include <fcntl.h>
 #include <poll.h>
 #include <netinet/in.h>

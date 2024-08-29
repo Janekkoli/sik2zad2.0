@@ -38,8 +38,6 @@ add_library(Common
         include/Player.h
         src/Card.cpp
         include/Card.h
-        src/common_f.cpp
-        include/common_f.h
         src/Server.cpp
         include/Server.h
         include/Client.h
@@ -49,8 +47,6 @@ add_library(Common
 # Dodanie pliku wykonywalnego kierki-klient
 add_executable(kierki-klient
         src/kierki-klient.cpp
-        include/klient_f.h
-        src/klient_f.cpp
 )
 
 # Powiązanie biblioteki Common z plikiem wykonywalnym kierki-klient

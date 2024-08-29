@@ -73,7 +73,7 @@ private:
     int trickNumber;
     std::string cardString;
     split_tricknum_rest(content, trickNumber, cardString);
-    std::cout<<"Trick message received: "<<trickNumber<<" "<<cardString<<std::endl;
+    //std::cout<<"Trick message received: "<<trickNumber<<" "<<cardString<<std::endl;
     if(trickNumber>13 || trickNumber<1) return;
     Card card;
     try{ card = Card(cardString);} catch(std::exception& e) {std::cout<<"wrong card!!!\n";
@@ -82,13 +82,15 @@ private:
       send_WRONG(poll_descriptors[connNumber].fd, trickNumber);return;
     }
     //card was correctly played
-    if(all_games.currentGame().finished) //new game is coming so i need to send score to players
+    if(all_games.currentGame().finished) //new game is coming so i need to send total scores to players
     {
       all_games.sendTotalMess();
+      if(all_games.games.size()==1) exit(EXIT_SUCCESS);
       startNewGame(); //here i start new game if game ends
     }
-    sendTrickMess(); //so im sending message to next person
-
+    else {
+      sendTrickMess(); //so im sending message to next person
+    }
   }
 
 
@@ -116,6 +118,7 @@ private:
   }
 
   void startNewGame() {
+    repeatingCurrentTrickTime = 0;
     for(PlayersSides s: {N,E,S,W})
     {connectionsDesc[playersConnectionsNumbers[s]].isDealSend= false; } //has to send new deals
     all_games.startNewGame();
