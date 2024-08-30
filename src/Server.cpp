@@ -52,7 +52,8 @@ void Server::run() {
                 (poll_descriptors[i].revents & (POLLIN | POLLERR))) {
 
                 ssize_t received_bytes = read(poll_descriptors[i].fd, buffer, BUFFER_SIZE);
-                makeReport(server_ip,server_port, connectionsDesc[i].client_ip, connectionsDesc[i].client_port, std::string(buffer,received_bytes));
+                //makeReport(server_ip,server_port, connectionsDesc[i].client_ip, connectionsDesc[i].client_port, std::string(buffer,received_bytes));
+                reportF(poll_descriptors[i].fd, std::string(buffer, received_bytes),true);
                 //TODO add correct server data
                 std::string message = connectionsDesc[i].message_buffor.addToBuffor(buffer,received_bytes);
                 if (received_bytes < 0) {
@@ -96,7 +97,7 @@ void Server::handleNewConnection() {
     bool accepted = false;
     for (int i = 1; i < CONNECTIONS_MAX; i++) {
         if (poll_descriptors[i].fd == -1) {
-            printf("received new connection (%d)\n", i);
+            //printf("received new connection (%d)\n", i);
             poll_descriptors[i].fd = client_fd;
             poll_descriptors[i].events = POLLIN;
             connectionsDesc[i].connTime = currentTime();
@@ -110,9 +111,6 @@ void Server::handleNewConnection() {
     if (!accepted) {
         close(client_fd);
         printf("too many clients\n");
-    } else {
-        printf("accepted connection from %s:%" PRIu16 "\n", client_ip,
-               client_port);
     }
 }
 
@@ -127,7 +125,7 @@ void Server::createSocket() {
     server_address.sin_addr.s_addr = htonl(INADDR_ANY); // Listening on all interfaces.
     server_address.sin_port = htons(port);
     server_ip = inet_ntoa(server_address.sin_addr);
-    std::cout<<"Listening: "<< server_ip<< " "<< port<<"\n";
+    //std::cout<<"Listening: "<< server_ip<< " "<< port<<"\n";
     if (bind(socket_fd, reinterpret_cast<struct sockaddr *>(&server_address),
              (socklen_t)sizeof server_address) < 0) {
         syserr("bind");
@@ -161,7 +159,7 @@ long Server::currentTime() {
 }
 
 void Server::closeConnection(const int i) {
-    std::cout<<"closing connection: "<<i<<std::endl;
+    //std::cout<<"closing connection: "<<i<<std::endl;
     if(connectionsDesc[i].player!=None) { playersConnectionsNumbers[connectionsDesc[i].player]=0; all_games.players[connectionsDesc[i].player].fd = 0; } //delete player from active players
     connectionsDesc[i].isDealSend = false;
     connectionsDesc[i].player = None;
@@ -172,7 +170,7 @@ void Server::closeConnection(const int i) {
 }
 
 void Server::handleMessage(const int connNumber, const std::string &messageOriginal) {
-    std::cout<<"Message: "<<messageOriginal<<"from connection: "<<connNumber<<std::endl;
+    //std::cout<<"Message: "<<messageOriginal<<"from connection: "<<connNumber<<std::endl;
     std::string message = messageOriginal;
     size_t pos = 0;
     std::string token;
@@ -193,10 +191,10 @@ void Server::dealwith_TRICK(const std::string &content, const PlayersSides side,
     //std::cout<<"Trick message received: "<<trickNumber<<" "<<cardString<<std::endl;
     if(trickNumber>13 || trickNumber<1) return;
     Card card;
-    try{ card = Card(cardString);} catch(std::exception& e) {std::cout<<"wrong card!!!\n";
-        send_WRONG(poll_descriptors[connNumber].fd, trickNumber);return;}
-    if(!all_games.playCard(side, card, trickNumber )) {std::cout<<"Cant play all_games.playcard()\n";
-        send_WRONG(poll_descriptors[connNumber].fd, trickNumber);return;
+    try{ card = Card(cardString);} catch(std::exception& e) {
+        send_WRONG(poll_descriptors[connNumber].fd, trickNumber,true);return;}
+    if(!all_games.playCard(side, card, trickNumber )) {
+        send_WRONG(poll_descriptors[connNumber].fd, trickNumber,true);return;
     }
     //card was correctly played
     if(all_games.currentGame().finished) //new game is coming so i need to send total scores to players
@@ -211,7 +209,7 @@ void Server::dealwith_TRICK(const std::string &content, const PlayersSides side,
 }
 
 void Server::dealwith_IAM(int connNumber, std::string content) {
-    std::cout<<"IAM: "<<content<<" number: "<<connNumber<<std::endl;
+    //std::cout<<"IAM: "<<content<<" number: "<<connNumber<<std::endl;
     PlayersSides seat;
     try {seat = fromChar(content[0]);} catch (std::invalid_argument &e) {closeConnection(connNumber);return;} // invalid seat
     if(playersConnectionsNumbers[seat]!=0) { //there is already active player i have to send busy
@@ -219,7 +217,7 @@ void Server::dealwith_IAM(int connNumber, std::string content) {
         for(PlayersSides s: {N,E,S,W}) {
             if(playersConnectionsNumbers[s]!=0) busySeats+=static_cast<char>(s);
         }
-        send_BUSY(poll_descriptors[connNumber].fd, busySeats);
+        send_BUSY(poll_descriptors[connNumber].fd, busySeats,true);
         closeConnection(connNumber);
         return;
     }

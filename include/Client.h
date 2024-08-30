@@ -21,9 +21,6 @@
 #ifndef CLIENT_H
 #define CLIENT_H
 
-//TODO deal with server wrong messages
-//TODO Wszystkie listy w komunikatach dla użytkownika są wypisywane rozdzielone przecinkami i spacjami.
-//TODO what is automatic client recconcets has to ack taken
 class Client {
 public:
     Client(const int opt, std::string host, const int port, const int ai_family, const bool automatic_player, const char seatChar): opt(opt), host(host),
@@ -33,7 +30,7 @@ public:
     void run() {
         makeConnection();
         char seatChar = toChar(seat);
-        send_IAM(socket_fd, &seatChar);
+        send_IAM(socket_fd, &seatChar, automaticPlayer);
         if (automaticPlayer) {
             //if player is automatic everything is easier
             automatic();
@@ -59,9 +56,8 @@ public:
                 handleStdin(message);
             }
             if (fds[1].revents & POLLIN) {
-                if ((message = readall(socket_fd)).empty()) syserr("disconnected from server");
+                if ((message = readall(socket_fd)).empty()) handleDisconnect();
                 split_and_execute(message);
-                //TODO dont know what is going on here
             }
         }
 
@@ -113,18 +109,10 @@ private:
         while (true) {
             //std::cout<<"start\n";
             if ((message = readallBlocking(socket_fd)).empty()) handleDisconnect();
+            reportF(socket_fd, message, true);
 
             //std::cout<<message<<"\n";
             split_and_execute(message);
-            // std::string delimiter = DELIMITER;
-            // size_t pos = 0;
-            // std::string token;
-            // while ((pos = message.find(delimiter)) != std::string::npos) {
-            //     token = message.substr(0, pos);
-            //     message.erase(0, pos + delimiter.length());
-            //     if(token.substr(0, 5) == "TRICK") automaticDealwith_TRICK(token.substr(5));
-            //     else continue;
-            // }
         }
     }
 
@@ -150,7 +138,7 @@ private:
         struct sockaddr_in server_address = get_server_address(host.c_str(), port);
         server_ip = inet_ntoa(server_address.sin_addr);
         server_port = ntohs(server_address.sin_port);
-        std::cout<<"Connected to server: "<<server_ip<<":"<<server_port<<"\n";
+        //std::cout<<"Connected to server: "<<server_ip<<":"<<server_port<<"\n";
         if (connect(socket_fd, (struct sockaddr *)&server_address, (socklen_t)sizeof(server_address)) < 0) {
             syserr("cannot connect to the server");
         }
@@ -225,7 +213,7 @@ private:
 
     void automaticPlayCard(int trickNum) {
         Trick& trick = all_games.currentGame().tricks[trickNum];
-        std::cout<<"My cards: "<<all_games.players[seat].cardsToString()<<"trick: "<<trick.cardsToString()<<"trick color: "<<trick.trickColor()<<"\n";
+        //std::cout<<"My cards: "<<all_games.players[seat].cardsToString()<<"trick: "<<trick.cardsToString()<<"trick color: "<<trick.trickColor()<<"\n";
         for(Card c: all_games.players[seat].cards) {
             //std::cout<<"card: "<<c.toString()<<"\n";
             if(all_games.players[seat].canPlayThisCard(c, trick.trickColor())) {
@@ -279,8 +267,6 @@ private:
         //}
         //std::cout<<cardString<<"\n";
         trick.addCards(cards);
-        //trick.print();
-        //TODO trick is 2S2S2S2S !!!!!
         trick.setWinner(fromChar(winner_seat));
         all_games.currentGame().tricks[trick_number] = trick;
         if(!automaticPlayer) std::cout << "A trick " << trick_number << " is taken by " << winner_seat << ", cards " << trick.cardsToString() << "\n";
@@ -290,8 +276,8 @@ private:
     }
 
     bool dealwith_WRONG(std::string content) {
-        if (automaticPlayer) {std::cout<<"Wrong card played very bad :(\n";return true;} //TODO if this is best
-        int trick_number; //TODO has to add card to player samehow
+        if (automaticPlayer) {syserr("Wrong card played very bad :(\n");return true;} //this shouldnt happend
+        int trick_number;
         if (sscanf(content.c_str(), "%d", &trick_number) != 1) return false;
         all_games.players[seat].wrongCard(all_games.currentGame().tricks[trick_number].getCards()[seat]);
         all_games.currentGame().tricks[trick_number].wrongCard();
@@ -342,7 +328,7 @@ private:
             return false;
         }
         all_games.currentGame().tricks[trickNumber].addCard(card);
-        send_TRICK(socket_fd, waiting_for_a_card, card.toString().c_str());
+        send_TRICK(socket_fd, waiting_for_a_card, card.toString().c_str(), automaticPlayer);
         waiting_for_a_card = -1;
         return true;
     }

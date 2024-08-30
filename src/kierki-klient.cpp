@@ -71,23 +71,23 @@ int main(int argc, char *argv[]) {
         print_usage();
         return EXIT_FAILURE;
     }
-
+    ai_family = AF_INET;
     // Wyświetlenie wyników
-    std::cout << "Host: " << host << std::endl;
-    std::cout << "Port: " << port << std::endl;
-    std::cout << "Seat: " << seat << std::endl;
-    if (automatic_player) {
-        std::cout << "Mode: Automatic Player" << std::endl;
-    } else {
-        std::cout << "Mode: Intermediary" << std::endl;
-    }
-    if (ai_family == AF_INET) {
-        std::cout << "Using IPv4" << std::endl;
-    } else if (ai_family == AF_INET6) {
-        std::cout << "Using IPv6" << std::endl;
-    } else {
-        std::cout << "IP Version: Unspecified (AF_UNSPEC)" << std::endl;
-    }
+    // std::cout << "Host: " << host << std::endl;
+    // std::cout << "Port: " << port << std::endl;
+    // std::cout << "Seat: " << seat << std::endl;
+    // if (automatic_player) {
+    //     std::cout << "Mode: Automatic Player" << std::endl;
+    // } else {
+    //     std::cout << "Mode: Intermediary" << std::endl;
+    // }
+    // if (ai_family == AF_INET) {
+    //     std::cout << "Using IPv4" << std::endl;
+    // } else if (ai_family == AF_INET6) {
+    //     std::cout << "Using IPv6" << std::endl;
+    // } else {
+    //     std::cout << "IP Version: Unspecified (AF_UNSPEC)" << std::endl;
+    // }
 
     auto client = Client(opt, host, port, ai_family, automatic_player, seat);
     client.run();

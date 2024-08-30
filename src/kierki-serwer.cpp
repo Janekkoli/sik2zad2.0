@@ -51,7 +51,7 @@ int main(int argc, char *argv[]) {
   }
   auto server = Server(port, filename, timeout);
 
-  server.print();
+  //server.print();
 
   server.run();
 

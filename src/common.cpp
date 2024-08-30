@@ -61,7 +61,8 @@ std::string readall(int fd) { //TODO maybe should wait until delimiter \n\r
 }
 
 // Write n bytes to a descriptor.
-ssize_t writen(int fd, const void *vptr, size_t n) {
+ssize_t writen(int fd, const char *vptr, size_t n, bool report) {
+    if(report) reportF(fd, std::string(vptr, strlen(vptr)), false);
     ssize_t nleft, nwritten;
     const char *ptr;
 
@@ -81,59 +82,59 @@ ssize_t writen(int fd, const void *vptr, size_t n) {
 
 
 
-int send_IAM(int fd, const char *seat) {
+int send_IAM(int fd, const char *seat, bool report) {
     if(fd<1) return BAD_DESCRIPTOR;
     char buffer[6] = {'I', 'A', 'M', *seat, '\r', '\n'};
-    return writen(fd, buffer, 6);
+    return writen(fd, buffer, 6, report);
 }
 
-int send_TOTAL(int fd, int score1, int score2, int score3, int score4) {
+int send_TOTAL(int fd, int score1, int score2, int score3, int score4, bool report) {
     if(fd<1) return BAD_DESCRIPTOR;
     char buffer[MAX_MESSAGE_SIZE];
     snprintf(buffer, MAX_MESSAGE_SIZE, "TOTALN%dE%dS%dW%d\r\n", score1, score2, score3, score4);
-    return writen(fd, buffer, strlen(buffer));
+    return writen(fd, buffer, strlen(buffer),report);
 }
 
-int send_SCORE(int fd, int score1, int score2, int score3, int score4) {
+int send_SCORE(int fd, int score1, int score2, int score3, int score4, bool report) {
     if(fd<1) return BAD_DESCRIPTOR;
     char buffer[MAX_MESSAGE_SIZE];
     snprintf(buffer, MAX_MESSAGE_SIZE, "SCOREN%dE%dS%dW%d\r\n", score1, score2, score3, score4);
-    return writen(fd, buffer, strlen(buffer));
+    return writen(fd, buffer, strlen(buffer),report);
 }
 
-int send_TAKEN(int fd, int trick_number, const char *cards, const char *winner_seat) {
+int send_TAKEN(int fd, int trick_number, const char *cards, const char *winner_seat,bool report) {
     if(fd<1) return BAD_DESCRIPTOR;
     char buffer[MAX_MESSAGE_SIZE];
     snprintf(buffer, MAX_MESSAGE_SIZE, "TAKEN%d%s%c\r\n", trick_number, cards, *winner_seat);
-    return writen(fd, buffer, strlen(buffer));
+    return writen(fd, buffer, strlen(buffer),report);
 }
 
-int send_WRONG(int fd, int trick_number) {
+int send_WRONG(int fd, int trick_number,bool report) {
     if(fd<1) return BAD_DESCRIPTOR;
     char buffer[64];
     snprintf(buffer, 64, "WRONG%d\r\n", trick_number);
-    return writen(fd, buffer, strlen(buffer));
+    return writen(fd, buffer, strlen(buffer),report);
 }
 
-int send_TRICK(int fd, int trick_number, const char *cards) {
+int send_TRICK(int fd, int trick_number, const char *cards,bool report) {
     if(fd<1) return BAD_DESCRIPTOR;
     char buffer[MAX_MESSAGE_SIZE];
     snprintf(buffer, MAX_MESSAGE_SIZE, "TRICK%d%s\r\n", trick_number, cards);
-    return writen(fd, buffer, strlen(buffer));
+    return writen(fd, buffer, strlen(buffer),report);
 }
 
-int send_DEAL(int fd, int deal_type, const char first_seat, const std::string &cards) {
+int send_DEAL(int fd, int deal_type, const char first_seat, const std::string &cards,bool report) {
     if(fd<1) return BAD_DESCRIPTOR;
     char buffer[MAX_MESSAGE_SIZE];
     snprintf(buffer, MAX_MESSAGE_SIZE, "DEAL%d%c%s\r\n", deal_type, first_seat, cards.c_str());
-    return writen(fd, buffer, strlen(buffer));
+    return writen(fd, buffer, strlen(buffer),report);
 }
 
-int send_BUSY(int fd, const std::string &busy_seats) {
+int send_BUSY(int fd, const std::string &busy_seats,bool report) {
     if(fd<1) return BAD_DESCRIPTOR;
     char buffer[MAX_MESSAGE_SIZE];
     snprintf(buffer, MAX_MESSAGE_SIZE, "BUSY%s\r\n", busy_seats.c_str());
-    return writen(fd, buffer, strlen(buffer));
+    return writen(fd, buffer, strlen(buffer),report);
 }
 
 PlayersSides fromChar(char c) {

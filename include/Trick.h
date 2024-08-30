@@ -27,7 +27,7 @@ public:
 
     void sendTakenMess(const int fd) {
         char winStr = toChar(winner);
-        send_TAKEN(fd, trickNumber, cardsToShortString().c_str(),&winStr );
+        send_TAKEN(fd, trickNumber, cardsToShortString().c_str(),&winStr, true );
     }
 
     void establishWinner() {
@@ -65,7 +65,7 @@ public:
     }
 
     void sendTrickMess(const int fd) {
-        send_TRICK(fd, trickNumber, cardsToShortString().c_str());
+        send_TRICK(fd, trickNumber, cardsToShortString().c_str(),true);
     }
 
     PlayersSides& getWinner() {

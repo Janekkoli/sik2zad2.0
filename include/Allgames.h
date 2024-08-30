@@ -34,7 +34,7 @@ public:
   void sendTotalMess() {
     //std::cout<<"SENDING TOTAL TO ALL PLAYERS\n";
     for(PlayersSides s: {N,E,S,W}) {
-      send_TOTAL(players[s].fd, players[N].getPoints(), players[E].getPoints(), players[S].getPoints(), players[W].getPoints());
+      send_TOTAL(players[s].fd, players[N].getPoints(), players[E].getPoints(), players[S].getPoints(), players[W].getPoints(),true);
     }
   }
 
@@ -55,7 +55,7 @@ public:
       for(PlayersSides s: {N,E,S,W}) {
         players[s].receivePoints(currentGame().playersScore[s]);
         //std::cout<<"SENDIONG SCORE MESSAGE\n";
-        send_SCORE(players[s].fd, currentGame().playersScore[N], currentGame().playersScore[E], currentGame().playersScore[S], currentGame().playersScore[W] );
+        send_SCORE(players[s].fd, currentGame().playersScore[N], currentGame().playersScore[E], currentGame().playersScore[S], currentGame().playersScore[W],true );
       }
     }
     return true;

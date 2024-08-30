@@ -15,6 +15,11 @@
 #include <unistd.h>
 #include <vector>
 #include <chrono>
+#include <iomanip>
+#include <arpa/inet.h>
+#include <netinet/in.h>
+#include <sys/socket.h>
+#include "err.h"
 #define TRICK_NUMBER (13)
 #define DELIMITER "\r\n"
 #define BUFFER_SIZE_READALL (128)
@@ -25,23 +30,23 @@
 class Card; //class card for functions definitions :)
 uint16_t read_port(char const *string);
 ssize_t	readn(int fd, void *vptr, size_t n);
-ssize_t	writen(int fd, const void *vptr, size_t n);
+ssize_t writen(int fd, const char *vptr, size_t n, bool report);
 std::string readall(int fd);
-int send_IAM(int fd, const char *seat);
+int send_IAM(int fd, const char *seat,bool report);
 
-int send_BUSY(int fd, const std::string& busy_seats);
+int send_BUSY(int fd, const std::string& busy_seats,bool report);
 
-int send_DEAL(int fd, int deal_type, char first_seat, const std::string &cards);
+int send_DEAL(int fd, int deal_type, char first_seat, const std::string &cards,bool report);
 
-int send_TRICK(int fd, int trick_number, const char *cards);
+int send_TRICK(int fd, int trick_number, const char *cards,bool report);
 
-int send_WRONG(int fd, int trick_number);
+int send_WRONG(int fd, int trick_number,bool report);
 
-int send_TAKEN(int fd, int trick_number, const char *cards, const char *winner_seat);
+int send_TAKEN(int fd, int trick_number, const char *cards, const char *winner_seat,bool report);
 
-int send_SCORE(int fd, int score1, int score2, int score3, int score4);
+int send_SCORE(int fd, int score1, int score2, int score3, int score4,bool report);
 
-int send_TOTAL(int fd, int score1, int score2, int score3, int score4);
+int send_TOTAL(int fd, int score1, int score2, int score3, int score4,bool report);
 
 enum PlayersSides {N='N', E='E', S='S', W='W', None = 'X'};
 
@@ -155,4 +160,47 @@ inline std::vector<Card> cardStringToArray2(const std::string& cardsString)
  }
 
 void split_tricknum_rest(const std::string& content, int &trick_number, std::string &cards);
+
+inline std::string timeReport() {
+    auto now = std::chrono::system_clock::now();
+    time_t in_time_t = std::chrono::system_clock::to_time_t(now);
+    auto milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) %1000;
+
+    std::stringstream time;
+    time << std::put_time(std::localtime(&in_time_t), "%Y-%m-%dT%H:%M:%S");
+    time << "." << std::setw(3) << std::setfill('0') << milliseconds.count();
+    return time.str();
+}
+
+inline void reportF(int sockfd, const std::string &message, bool is_message_recived) {
+    sockaddr_in reciver_addr{}, sender_addr{};
+    socklen_t reciver_len = sizeof(reciver_addr);
+    socklen_t sender_len = sizeof(sender_addr);
+
+    // Get sender info
+    if (getsockname(sockfd, (sockaddr *)&reciver_addr, &reciver_len) == -1) {
+        syserr("getsockname");
+    }
+
+    // Get receiver info
+    if (getpeername(sockfd, (sockaddr *)&sender_addr, &sender_len) == -1) {
+        syserr("getpeername");
+    }
+
+    char server_ip[INET_ADDRSTRLEN];
+    char client_ip[INET_ADDRSTRLEN];
+
+    inet_ntop(AF_INET, &(reciver_addr.sin_addr), server_ip, INET_ADDRSTRLEN);
+    inet_ntop(AF_INET, &(sender_addr.sin_addr), client_ip, INET_ADDRSTRLEN);
+    int server_port = ntohs(reciver_addr.sin_port);
+    int client_port = ntohs(sender_addr.sin_port);
+    if(is_message_recived)
+        std::cout << "[" << client_ip << ":" << client_port << "," << server_ip << ":" << server_port << "," << timeReport() << "] " << message;
+    else
+        std::cout << "[" << server_ip << ":" << server_port << "," << client_ip << ":" << client_port << "," << timeReport() << "] " << message;
+
+}
+
+
+
 #endif //ZAD2_SIK_COMMON_H

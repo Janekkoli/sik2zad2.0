@@ -28,8 +28,8 @@ public:
         return tricks[currentTrickNum];
     }
     bool playCard(const PlayersSides side, const Card card, const int trickNumber,   std::map<PlayersSides, int>& playersFd) {
-        if(trickNumber != currentTrickNum) {std::cout<<"Worng tricknum\n";return false;} // check trick number
-        if(!tricks[currentTrickNum].playCard(side, card)) {std::cout<<"trick error playcard\n";return false;}
+        if(trickNumber != currentTrickNum) {return false;} // check trick number
+        if(!tricks[currentTrickNum].playCard(side, card)) {return false;}
         if(currentTrick().points()!=-1) { //trick is finished
             //std::cout<<"Trick finished :((";
             playersScore[currentTrick().getWinner()]+=currentTrick().points();
@@ -51,7 +51,7 @@ public:
 
 
     void sendDealMess(const PlayersSides side, const int fd) { //adding newely connected player and sending him his info
-        send_DEAL(fd, gameType, firstPlayer,players_cards[side]);
+        send_DEAL(fd, gameType, firstPlayer,players_cards[side],true);
         for(int i = 1 ;i<currentTrickNum;i++) { // send trick info to player if needed
             tricks[i].sendTakenMess(fd);
         }
