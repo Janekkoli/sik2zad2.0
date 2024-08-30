@@ -1,5 +1,5 @@
 #pragma once
-#include <Allgames.h>
+#include "Allgames.h"
 #include <arpa/inet.h>
 #include <poll.h>
 #include <string>
@@ -7,7 +7,7 @@
 #include <sys/types.h>
 #include <fstream>
 #include <netdb.h>
-
+#include "messageBuffor.h"
 #define CONNECTIONS_MAX 130
 #define QUEUE_LENGTH 5 // what number?
 #define BUFFER_SIZE 1000
@@ -21,6 +21,7 @@ struct connection {
   bool isDealSend = false;
   char const *client_ip;
   uint16_t client_port;
+  messageBuffor message_buffor;
 };
 class Server {
 public:
@@ -47,10 +48,14 @@ private:
   bool finish = false;
   std::map<PlayersSides, int> playersConnectionsNumbers;
   time_t repeatingCurrentTrickTime = 0;  //time when last trick was send
+  char const *server_ip;
+  uint16_t server_port;
+  std::string report;
+
+
   void checkTimeouts();
   void handleNewConnection();
   void createSocket();
-
   void readPlayFile();
   static long currentTime();
   void closeConnection(const int i);
@@ -58,7 +63,6 @@ private:
   void handleMessage(const int connNumber, const std::string& messageOriginal) {
     std::cout<<"Message: "<<messageOriginal<<"from connection: "<<connNumber<<std::endl;
     std::string message = messageOriginal;
-
     size_t pos = 0;
     std::string token;
     std::string delimiter = DELIMITER;

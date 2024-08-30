@@ -7,6 +7,7 @@
 #define ZAD2_SIK_COMMON_H
 #include <string>
 #include <cstddef>
+#include <cstring>
 #include <iostream>
 #include <sys/types.h>
 #include <stdexcept>
@@ -142,8 +143,12 @@ inline std::vector<Card> cardStringToArray2(const std::string& cardsString)
     return wyn;
 }
 
-
-
+ // inline std::string makeReport(char* sender_ip, uint16_t sender_port, char* receiver_ip, uint16_t receiver_port, std::string message)  //nadawca - odbiorca
+ // {
+ //     std::string ret;
+ //     ret="["+std::string(sender_ip, std::strlen(sender_ip))+std::string(sender_port)+;
+ //    return ret;
+ // }
 
 void split_tricknum_rest(const std::string& content, int &trick_number, std::string &cards);
 #endif //ZAD2_SIK_COMMON_H

@@ -42,6 +42,8 @@ add_library(Common
         include/Server.h
         include/Client.h
         src/Client.cpp
+        src/messageBuffor.cpp
+        include/messageBuffor.h
 )
 
 # Dodanie pliku wykonywalnego kierki-klient

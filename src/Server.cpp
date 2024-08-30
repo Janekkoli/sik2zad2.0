@@ -51,8 +51,8 @@ void Server::run() {
             if (poll_descriptors[i].fd != -1 &&
                 (poll_descriptors[i].revents & (POLLIN | POLLERR))) {
 
-                ssize_t received_bytes =
-                        read(poll_descriptors[i].fd, buffer, BUFFER_SIZE);
+                ssize_t received_bytes = read(poll_descriptors[i].fd, buffer, BUFFER_SIZE);
+                std::string message = connectionsDesc[i].message_buffor.addToBuffor(buffer,received_bytes);
                 //TODO add here function that gives back whole line
                 if (received_bytes < 0) {
                     error("error when reading message from connection %d", i);
@@ -61,8 +61,7 @@ void Server::run() {
                     closeConnection(i);
                 } else {
                     //recived message
-                    handleMessage(i, std::string(buffer, received_bytes));
-
+                    handleMessage(i, message);
                 }
             }
         }
@@ -124,9 +123,10 @@ void Server::createSocket() {
     // Bind the socket to a concrete address.
     sockaddr_in server_address{};
     server_address.sin_family = AF_INET; // IPv4 how to do it with client side
-    server_address.sin_addr.s_addr =
-            htonl(INADDR_ANY); // Listening on all interfaces.
+    server_address.sin_addr.s_addr = htonl(INADDR_ANY); // Listening on all interfaces.
     server_address.sin_port = htons(port);
+    server_ip = inet_ntoa(server_address.sin_addr);
+    std::cout<<"Listening: "<< server_ip<< " "<< port<<"\n";
     if (bind(socket_fd, reinterpret_cast<struct sockaddr *>(&server_address),
              (socklen_t)sizeof server_address) < 0) {
         syserr("bind");

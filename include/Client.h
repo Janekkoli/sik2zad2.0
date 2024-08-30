@@ -12,6 +12,9 @@
 #include <cstring>
 #include <unistd.h>
 #include <csignal>
+#include <netdb.h>
+#include <arpa/inet.h>
+
 #include "Allgames.h"
 #include "common.h"
 #include "err.h"
@@ -77,6 +80,11 @@ private:
     pollfd fds[2];
     int waiting_for_a_card = -1;
     All_Games all_games = All_Games();
+    char const *server_ip;
+    uint16_t server_port;
+
+    char const *client_ip;
+    uint16_t client_port;
 
     void split_and_execute(std::string &message) {
         //std::cout<<"MESSAGE RECIVED: "<<message<<"\n";
@@ -139,6 +147,9 @@ private:
         socket_fd = socket(ai_family, SOCK_STREAM, 0);
         if (socket_fd < 0) { syserr("cannot create a socket"); }
         struct sockaddr_in server_address = get_server_address(host.c_str(), port);
+        server_ip = inet_ntoa(server_address.sin_addr);
+        server_port = ntohs(server_address.sin_port);
+        std::cout<<"Connected to server: "<<server_ip<<":"<<server_port<<"\n";
         if (connect(socket_fd, (struct sockaddr *)&server_address, (socklen_t)sizeof(server_address)) < 0) {
             syserr("cannot connect to the server");
         }
