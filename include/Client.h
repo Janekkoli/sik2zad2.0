@@ -12,12 +12,12 @@
 #include <cstring>
 #include <unistd.h>
 #include <csignal>
-#include <netdb.h>
 #include <arpa/inet.h>
-
 #include "Allgames.h"
 #include "common.h"
 #include "err.h"
+#include <stdexcept>
+#include <iostream>
 #ifndef CLIENT_H
 #define CLIENT_H
 
@@ -113,6 +113,7 @@ private:
         while (true) {
             //std::cout<<"start\n";
             if ((message = readallBlocking(socket_fd)).empty()) handleDisconnect();
+
             //std::cout<<message<<"\n";
             split_and_execute(message);
             // std::string delimiter = DELIMITER;

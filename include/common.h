@@ -14,6 +14,7 @@
 #include "Card.h"
 #include <unistd.h>
 #include <vector>
+#include <chrono>
 #define TRICK_NUMBER (13)
 #define DELIMITER "\r\n"
 #define BUFFER_SIZE_READALL (128)
@@ -143,12 +144,10 @@ inline std::vector<Card> cardStringToArray2(const std::string& cardsString)
     return wyn;
 }
 
- // inline std::string makeReport(char* sender_ip, uint16_t sender_port, char* receiver_ip, uint16_t receiver_port, std::string message)  //nadawca - odbiorca
- // {
- //     std::string ret;
- //     ret="["+std::string(sender_ip, std::strlen(sender_ip))+std::string(sender_port)+;
- //    return ret;
- // }
+ inline void makeReport(char* sender_ip, uint16_t sender_port, char* receiver_ip, uint16_t receiver_port, std::string message)  //nadawca - odbiorca
+ {
+     std::cout<<"["<<sender_ip<<":"<<sender_port<<","<<receiver_ip<<":"<<receiver_port<<","<<"time here"<<"] "<<message;
+ }
 
 void split_tricknum_rest(const std::string& content, int &trick_number, std::string &cards);
 #endif //ZAD2_SIK_COMMON_H
