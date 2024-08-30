@@ -104,15 +104,20 @@ inline PlayersSides operator++(PlayersSides &c) {
 inline PlayersSides operator--(PlayersSides &c) {
     switch (c) {
         case N:
-            return W;
+            c = W;
+        break;
         case E:
-            return N;
+            c = N;
+        break;
         case S:
-            return E;
+            c = E;
+        break;
         case W:
-            return S;
+            c = S;
+        break;
         default: return None;
     }
+    return c;
 }
 inline PlayersSides operator+(PlayersSides c, int i) {
     for(int i2=1;i2<=i;i2++)++c;

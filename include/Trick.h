@@ -48,6 +48,11 @@ public:
         return true;
     }
 
+    void wrongCard() {
+        --currentPlayer;
+        cards[currentPlayer]=Card();
+    }
+
     std::map<PlayersSides, Card>& getCards() {
         return cards;
     }

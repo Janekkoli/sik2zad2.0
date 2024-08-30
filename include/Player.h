@@ -40,7 +40,13 @@ public:
 
     //old design
     bool playCard(Card card){
+        bool isTheCardInHand = false; //TODO check if card is in deck
+        for(Card c: cards)
+            if(c==card)
+                isTheCardInHand = true;
+        if(!isTheCardInHand) return false;
         auto it = std::remove(cards.begin(), cards.end(), card);
+
         cards.erase(it, cards.end());
         return true; //TODO is it not a problem
     }

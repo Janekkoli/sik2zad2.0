@@ -67,10 +67,6 @@ private:
 
   void dealwith_IAM(int connNumber, std::string content);
 
-  // static void catch_int(int sig) {
-  //   finish = true;
-  //   std::cout << "signal catched so no new connections will be accepted\n";
-  // }
   void checkPlayersReadyAndSendThemDeals();
 
   void sendTrickMess();
@@ -80,4 +76,9 @@ private:
   void checkIfSendTrickMess();
 
   bool areAllClientsConnected();
+
+  // static void catch_int(int sig) {
+  //   finish = true;
+  //   std::cout << "signal catched so no new connections will be accepted\n";
+  // }
 };

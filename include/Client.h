@@ -129,7 +129,7 @@ private:
     }
 
     void handleDisconnect() {
-        if(all_games.currentGame().currentTrickNum == 13 && all_games.currentGame().currentTrick().points()!=-1)
+        if(all_games.currentGame().currentTrickNum == 13 && all_games.currentGame().tricks[13].points()!=-1)
         {close(socket_fd);exit(EXIT_SUCCESS);}
         syserr("disconnected from server");
     }
@@ -140,7 +140,7 @@ private:
         if (message == "cards\n") { std::cout << "Twoje karty na reku: " << all_games.players[seat].cardsToString() << "\n"; }
         else if (message == "tricks\n") { trics_print(); } else if (message[0] == '!') {
             try { c = Card(message.substr(1, message.size() - 2)); } catch (std::invalid_argument &e) { std::cout << "Invalid card code\n"; }
-            play_card(c);
+            play_card(c, waiting_for_a_card);
         } else { std::cout << "Invalid command\n"; }
     }
 
@@ -223,13 +223,14 @@ private:
         if (!automaticPlayer) { std::cout << "New deal " << deal_type << ": starting place " << firstSeatChar << ", your cards: " << all_games.players[seat].cardsToString() << ".\n"; }
     }
 
-    void automaticPlayCard() {
-        Trick& trick = all_games.currentGame().currentTrick();
+    void automaticPlayCard(int trickNum) {
+        Trick& trick = all_games.currentGame().tricks[trickNum];
+        std::cout<<"My cards: "<<all_games.players[seat].cardsToString()<<"trick: "<<trick.cardsToString()<<"trick color: "<<trick.trickColor()<<"\n";
         for(Card c: all_games.players[seat].cards) {
             //std::cout<<"card: "<<c.toString()<<"\n";
             if(all_games.players[seat].canPlayThisCard(c, trick.trickColor())) {
                 //std::cout<<"Automatic card chose: "<< trick.cardsToString()<< " i want to play: "<< c.toString()<< "\n";
-                play_card(c);
+                play_card(c,trickNum);
                 break;
             }
         }
@@ -239,20 +240,21 @@ private:
         int trick_number;
         std::string cardString;
         split_tricknum_rest(content, trick_number, cardString);
-        //else
-        //{std::cout<<"Automatic trick selection XD \n";}
         waiting_for_a_card = trick_number;
         std::vector<Card> cards = cardStringToArray2(cardString);
         int n = cards.size();
+        //std::cout<<n<<" "<<seat<<"\n";
         Trick trick = Trick(seat - n, trick_number, all_games.currentGame().gameType);
         trick.addCards(cards);
+        //trick.print();
+        all_games.currentGame().tricks[trick_number]=trick;
         if(!automaticPlayer) {
             std::cout << "Trick: (" << trick_number << ") " << trick.cardsToString() << std::endl;
             std::cout << "Available: " << all_games.players[seat].cardsToString() << std::endl;
             std::cout << "Choose a card to play (write !<card code><enter> for example !2D<enter> : \n";
         }
         else{
-            automaticPlayCard();
+            automaticPlayCard(trick_number);
         }
         //all_games.currentGame()->addTrick()
         return true;
@@ -291,9 +293,11 @@ private:
         if (automaticPlayer) {std::cout<<"Wrong card played very bad :(\n";return true;} //TODO if this is best
         int trick_number; //TODO has to add card to player samehow
         if (sscanf(content.c_str(), "%d", &trick_number) != 1) return false;
+        all_games.players[seat].wrongCard(all_games.currentGame().tricks[trick_number].getCards()[seat]);
+        all_games.currentGame().tricks[trick_number].wrongCard();
         std::cout << "Wrong message received in trick " << trick_number << ".\n";
         std::cout << "Try again trick: (" << trick_number << ") " << all_games.currentGame().tricks[trick_number].cardsToString() << std::endl;
-        all_games.players[seat].wrongCard(all_games.currentGame().tricks[trick_number].getCards()[seat]);
+
         std::cout << "Available: " << all_games.players[seat].cardsToString() << std::endl;
         std::cout << "Choose a card to play (write !<card code><enter> for example !2D<enter> : \n";
         waiting_for_a_card = trick_number;
@@ -328,7 +332,7 @@ private:
     }
 
 
-    bool play_card(Card card) {
+    bool play_card(Card card, int trickNumber) {
         if (waiting_for_a_card == -1) {
             std::cout << "Not waiting for a card\n";
             return false;
@@ -337,6 +341,7 @@ private:
             std::cout << "You dont have this card\n";
             return false;
         }
+        all_games.currentGame().tricks[trickNumber].addCard(card);
         send_TRICK(socket_fd, waiting_for_a_card, card.toString().c_str());
         waiting_for_a_card = -1;
         return true;

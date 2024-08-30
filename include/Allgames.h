@@ -50,6 +50,7 @@ public:
     if(!players[side].canPlayThisCard(card, currentGame().tricks[trickNumber].trickColor())) {std::cout<<"pplayers.playcard wrong\n";return false;}
     //player has this card and color is alright
     if(!currentGame().playCard(side, card, trickNumber, playersFd)) {std::cout<<"current game playcard error\n";return false;}
+    players[side].playCard(card);
     if(currentGame().finished) { //game finished
       for(PlayersSides s: {N,E,S,W}) {
         players[s].receivePoints(currentGame().playersScore[s]);
