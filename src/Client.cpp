@@ -5,6 +5,8 @@
 
 #include <fcntl.h>
 
+#include "err.h"
+
 Client::Client(const int opt, std::string host, const int port, const int ai_family, const bool automatic_player, const char seatChar): opt(opt), host(host),
                                                                                                                                         port(port), ai_family(ai_family), automaticPlayer(automatic_player) {
     this->seat = fromChar(seatChar);}

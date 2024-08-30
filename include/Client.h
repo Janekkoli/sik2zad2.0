@@ -3,22 +3,10 @@
 //
 #pragma once
 #include <sys/socket.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <cinttypes>
 #include <netdb.h>
-#include <cstddef>
-#include <cstdio>
-#include <cstring>
-#include <unistd.h>
-#include <csignal>
 #include <arpa/inet.h>
 #include "Allgames.h"
 #include "common.h"
-#include "err.h"
-#include <stdexcept>
-#include <iostream>
-#include <sys/poll.h>
 #include <sys/poll.h>
 #ifndef CLIENT_H
 #define CLIENT_H

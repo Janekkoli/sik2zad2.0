@@ -7,6 +7,7 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <cerrno>
+#include <chrono>
 #include <netdb.h>
 #include <cstddef>
 #include <cstdio>
@@ -14,6 +15,7 @@
 #include <unistd.h>
 #include "err.h"
 #include <iostream>
+#include <arpa/inet.h>
 #define BAD_DESCRIPTOR (-1)
 
 uint16_t read_port(char const *string) {

@@ -1,6 +1,5 @@
 #pragma once
 #include "Trick.h"
-#include "Player.h"
 #include <map>
 #include <string>
 class Game {

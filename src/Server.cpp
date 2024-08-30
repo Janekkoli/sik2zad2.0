@@ -1,6 +1,8 @@
 #include "Server.h"
 #include <chrono>
 #include <iostream>
+#include <arpa/inet.h>
+
 #include "err.h"
 
 Server::Server(const uint16_t port, const std::string &fileName, const time_t socketTimeOut) {

@@ -1,11 +1,7 @@
 #pragma once
 #include "Allgames.h"
-#include <arpa/inet.h>
 #include <poll.h>
 #include <string>
-#include <sys/socket.h>
-#include <sys/types.h>
-#include <fstream>
 #include <netdb.h>
 #include "messageBuffor.h"
 #define CONNECTIONS_MAX 130

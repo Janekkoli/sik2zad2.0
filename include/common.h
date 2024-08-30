@@ -7,19 +7,11 @@
 #define ZAD2_SIK_COMMON_H
 #include <string>
 #include <cstddef>
-#include <cstring>
-#include <iostream>
 #include <sys/types.h>
-#include <stdexcept>
 #include "Card.h"
-#include <unistd.h>
 #include <vector>
-#include <chrono>
 #include <iomanip>
-#include <arpa/inet.h>
 #include <netinet/in.h>
-#include <sys/socket.h>
-#include "err.h"
 #define TRICK_NUMBER (13)
 #define DELIMITER "\r\n"
 #define BUFFER_SIZE_READALL (128)
