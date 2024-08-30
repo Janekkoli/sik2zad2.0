@@ -25,13 +25,8 @@ struct connection {
 };
 class Server {
 public:
-  Server(const uint16_t port,const std::string& fileName,const time_t socketTimeOut) {
-    this->port = port;
-    this->fileName = fileName;
-    this->socketTimeOut = socketTimeOut;
-    readPlayFile();
-    //install_signal_handler(SIGINT, catch_int, SA_RESTART);
-  }
+  Server(const uint16_t port,const std::string& fileName,const time_t socketTimeOut);
+
   void print() const;
 
   void run();
@@ -76,9 +71,4 @@ private:
   void checkIfSendTrickMess();
 
   bool areAllClientsConnected();
-
-  // static void catch_int(int sig) {
-  //   finish = true;
-  //   std::cout << "signal catched so no new connections will be accepted\n";
-  // }
 };

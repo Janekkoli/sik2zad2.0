@@ -2,6 +2,15 @@
 #include <chrono>
 #include <iostream>
 #include "err.h"
+
+Server::Server(const uint16_t port, const std::string &fileName, const time_t socketTimeOut) {
+    this->port = port;
+    this->fileName = fileName;
+    this->socketTimeOut = socketTimeOut;
+    readPlayFile();
+    //install_signal_handler(SIGINT, catch_int, SA_RESTART);
+}
+
 void Server::print() const {
     std::cout << "Port: " << port << std::endl;
     std::cout << "File: " << fileName << std::endl;
